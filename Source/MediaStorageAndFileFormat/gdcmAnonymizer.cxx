@@ -28,6 +28,8 @@
 #include "gdcmEvent.h"
 #include "gdcmAnonymizeEvent.h"
 
+#include "arterysJSON.h"
+
 namespace gdcm
 {
 // PS 3.15 - 2008
@@ -731,7 +733,6 @@ bool Anonymizer::BasicApplicationLevelConfidentialityProfile1()
     gdcmErrorMacro( "Need a certificate" );
     return false;
     }
-
   CryptographicMessageSyntax &p7 = *CMS;
   //p7.SetCertificate( this->x509 );
 
@@ -781,7 +782,9 @@ bool Anonymizer::BasicApplicationLevelConfidentialityProfile1()
     {
     const Tag& tag = *ptr;
     if( ds.FindDataElement( tag ) )
-      encryptedds.Insert( ds.GetDataElement( tag ) );
+        {
+            arterys::DataElementToJSONArray(ds.GetDataElement(tag).GetVR(), ds.GetDataElement(tag), file_phi);
+        }
     }
   this->InvokeEvent( IterationEvent() );
   // Check that root level sequence do not contains any of those attributes
@@ -912,7 +915,8 @@ bool Anonymizer::BasicApplicationLevelConfidentialityProfile1()
     subdes.SetValue(*sq);
     subdes.SetVLToUndefined();
 
-    ds.Insert(subdes);
+    // We don't need this for Arterys.
+    //ds.Insert(subdes);
     }
   this->InvokeEvent( IterationEvent() );
 
@@ -972,6 +976,23 @@ catch(...)
 
   this->InvokeEvent( IterationEvent() );
 #endif
+
+  for(const Tag *ptr = start ; ptr != end ; ++ptr)
+      {
+          const Tag& tag = *ptr;
+
+          if( ds.FindDataElement( tag ) )
+              {
+                  if ( ! ds.GetDataElement(tag).IsEmpty() )
+              {
+                  const Value &val = ds.GetDataElement(tag).GetValue();
+                  std::stringstream ss;
+                  ss << val;
+                  file_phi[tag.PrintAsContinuousString()]["o"] = ss.str();
+              }
+              }
+      }
+  this->InvokeEvent( IterationEvent() );
 
   return true;
 }
