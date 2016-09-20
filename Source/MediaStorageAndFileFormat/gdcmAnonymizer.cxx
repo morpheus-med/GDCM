@@ -778,6 +778,12 @@ bool Anonymizer::BasicApplicationLevelConfidentialityProfile1()
   item1.SetVLToUndefined();
   DataSet &encryptedds = item1.GetNestedDataSet();
   // Loop over root level attributes:
+
+  Tag encoding = Tag(0x0008,0x0005);
+  if ( ds.FindDataElement(encoding) )
+      {
+          arterys::DataElementToJSONArray(ds.GetDataElement(encoding).GetVR(), ds.GetDataElement(encoding), file_phi);
+      }
   for(const Tag *ptr = start ; ptr != end ; ++ptr)
     {
     const Tag& tag = *ptr;
