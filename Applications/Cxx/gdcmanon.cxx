@@ -28,9 +28,9 @@
 #include "gdcmGlobal.h"
 #include "gdcmDefs.h"
 #include "gdcmDirectory.h"
+#include "json.hpp"
 
 #include <getopt.h>
-
 
 static void PrintVersion()
 {
@@ -218,6 +218,7 @@ static void PrintHelp()
   std::cout << "Options:" << std::endl;
   std::cout << "  -i --input                  DICOM filename / directory" << std::endl;
   std::cout << "  -o --output                 DICOM filename / directory" << std::endl;
+  std::cout << "  -j --json                   Output de-identified data to json" << std::endl;
   std::cout << "  -r --recursive              recursively process (sub-)directories." << std::endl;
   std::cout << "     --continue               Do not stop when file found is not DICOM." << std::endl;
   std::cout << "     --root-uid               Root UID." << std::endl;
@@ -291,6 +292,7 @@ int main(int argc, char *argv[])
   std::string xmlpath;
   std::string rsa_path;
   std::string cert_path;
+  std::string json_path;
   std::string password;
   int resourcespath = 0;
   int dumb_mode = 0;
@@ -324,6 +326,7 @@ int main(int argc, char *argv[])
     static struct option long_options[] = {
         {"input", required_argument, NULL, 'i'},                 // i
         {"output", required_argument, NULL, 'o'},                // o
+        {"json", required_argument, NULL, 'j'},                  // j
         {"root-uid", required_argument, &rootuid, 1}, // specific Root (not GDCM)
         {"resources-path", required_argument, &resourcespath, 1},
         {"de-identify", no_argument, NULL, 'e'},
@@ -355,7 +358,7 @@ int main(int argc, char *argv[])
         {0, 0, 0, 0}
     };
 
-    c = getopt_long (argc, argv, "i:o:rdek:c:p:VWDEhv",
+    c = getopt_long (argc, argv, "i:o:j:rdek:c:p:VWDEhv",
       long_options, &option_index);
     if (c == -1)
       {
@@ -494,6 +497,11 @@ int main(int argc, char *argv[])
     case 'c': // certificate
       assert( cert_path.empty() );
       cert_path = optarg;
+      break;
+
+    case 'j':
+      assert( json_path.empty() );
+      json_path = optarg;
       break;
 
     case 'p': // password
@@ -793,7 +801,9 @@ int main(int argc, char *argv[])
     }
 
   // Setup gdcm::Anonymizer
+
   gdcm::Anonymizer anon;
+  nlohmann::json phi;
   if( !dumb_mode )
     {
     anon.SetCryptographicMessageSyntax( cms_ptr.get() );
@@ -823,7 +833,16 @@ int main(int argc, char *argv[])
         //std::cerr << "Could not anonymize: " << in << std::endl;
         return 1;
         }
+      phi[in] = anon.file_phi;
       }
     }
+
+  if ( !json_path.empty() )
+      {
+          std::ofstream json_file;
+          json_file.open (json_path);
+          json_file << phi.dump(4) << std::endl;
+          json_file.close();
+      }
   return 0;
 }

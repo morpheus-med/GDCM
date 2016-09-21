@@ -18,7 +18,7 @@
 #include "gdcmSubject.h"
 #include "gdcmEvent.h"
 #include "gdcmSmartPointer.h"
-
+#include "json.hpp"
 #include <map>
 
 namespace gdcm
@@ -77,8 +77,10 @@ class CryptographicMessageSyntax;
 class GDCM_EXPORT Anonymizer : public Subject
 {
 public:
-  Anonymizer():F(new File),CMS(NULL) {}
+  Anonymizer():F(new File),CMS(NULL){}
   ~Anonymizer();
+
+  nlohmann::json file_phi;
 
   /// Make Tag t empty (if not found tag will be created)
   /// Warning: does not handle SQ element
@@ -115,7 +117,7 @@ public:
   // bool Remove( PRIVATE_TAGS | GROUP_LENGTH | RETIRED );
 
   /// Set/Get File
-  void SetFile(const File& f) { F = f; }
+  void SetFile(const File& f) { F = f; file_phi = nlohmann::json({}); }
   //const File &GetFile() const { return *F; }
   File &GetFile() { return *F; }
 
