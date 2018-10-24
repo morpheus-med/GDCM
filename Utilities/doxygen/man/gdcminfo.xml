@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
 <?xml-stylesheet type="text/xsl" href="http://docbook.sourceforge.net/release/xsl-ns/current/manpages/docbook.xsl" ?>
+<!DOCTYPE Data [ <!ENTITY version SYSTEM 'version.txt'> ]>
 <refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink">
 <info>
 <author><personname><firstname>Mathieu</firstname><surname>Malaterre</surname></personname><contrib>Main developer</contrib></author>
@@ -9,7 +10,7 @@
     <refentrytitle>gdcminfo</refentrytitle>
     <manvolnum>1</manvolnum>
     <refmiscinfo class="source">GDCM</refmiscinfo>
-    <refmiscinfo class="version">VER_FULL</refmiscinfo>
+    <refmiscinfo class="version">&version;</refmiscinfo>
     <refmiscinfo class="manual">DICOM Manipulation.</refmiscinfo>
   </refmeta>
   <refnamediv><refname>gdcminfo</refname>
@@ -157,10 +158,17 @@ Orientation Label: SAGITTAL
 <para><literallayout>$ gdcminfo --check-compression gdcmData/MAROTECH_CT_JP2Lossy.dcm
 </literallayout></para>
 
-<para>The tool returns: &quot;Encapsulated Stream was found to be: lossy&quot;</para>
+<para>The tool returns: <quote>Encapsulated Stream was found to be: lossy</quote></para>
 
 <para>Pay attention that this tool also checks the Image Lossy Compression attribute (0028,2110). This means <option>--check-compression</option> will also returns a value of lossy if a predecessor was found to be lossy compressed.</para>
 </refsection>
+</refsection>
+<refsection xml:id="gdcminfo_1mosaic">
+<title>Checking image as if MOSAIC</title>
+<para>Dump the image as if MOSAIC. If the input is really MOSAIC image, then print the information of the true underlying MOSAIC volume.</para>
+<para><literallayout>$ gdcminfo --mosaic siemens_mosaic.dcm
+</literallayout></para>
+
 </refsection>
 <refsection xml:id="gdcminfo_1see_also">
 <title>SEE ALSO</title>

@@ -1,6 +1,7 @@
 # Define the srcs for Media Storage And FileFormat
 # MSFF
 set(MSFF_SRCS
+  gdcmEmptyMaskGenerator.cxx
   gdcmFileStreamer.cxx
   gdcmJSON.cxx
   gdcmFileChangeTransferSyntax.cxx
@@ -92,16 +93,8 @@ set(MSFF_SRCS
   gdcmSurfaceReader.cxx
   gdcmSurfaceHelper.cxx
   gdcmSegmentHelper.cxx
+  gdcmJPEG2000Codec.cxx
   )
-if(OPENJPEG_VERSION VERSION_LESS 2.0)
-  list(APPEND MSFF_SRCS
-    gdcmJPEG2000Codec.cxx
-  )
-else ()
-  list(APPEND MSFF_SRCS
-    gdcmOpenJPEG2Codec.cxx
-  )
-endif()
 
   list(APPEND MSFF_SRCS
     ${GDCM_SOURCE_DIR}/Utilities/gdcmrle/rle.cxx
@@ -116,10 +109,14 @@ if(NOT BUILD_SHARED_LIBS)
                               PROPERTIES
                               COMPILE_FLAGS -DOPJ_STATIC
                               )
+  set_source_files_properties(gdcmJPEGLSCodec.cxx
+                              PROPERTIES
+                              COMPILE_DEFINITIONS CHARLS_STATIC
+                              )
 else()
   set_source_files_properties(gdcmJPEGLSCodec.cxx
                               PROPERTIES
-                              COMPILE_FLAGS -DCHARLS_SHARED
+                              COMPILE_FLAGS -DCHARLS_DLL
                               )
 endif()
 
@@ -155,15 +152,10 @@ if(GDCM_USE_SYSTEM_OPENJPEG)
 else()
   include_directories(
   "${GDCM_BINARY_DIR}/Utilities/gdcmopenjpeg"
+  "${GDCM_BINARY_DIR}/Utilities/gdcmopenjpeg/src/lib/openjp2"
     )
-if(GDCM_USE_OPENJPEG_V2)
-  INCLUDE_DIRECTORIES(
-  "${GDCM_BINARY_DIR}/Utilities/gdcmopenjpeg-v2"
-    )
-endif()
 endif()
 if(GDCM_USE_SYSTEM_LJPEG)
-  #message(${LJPEG_INCLUDE_DIRS} )
   include_directories(${LJPEG_INCLUDE_DIRS} )
 endif()
 if(NOT GDCM_USE_SYSTEM_ZLIB)
@@ -197,9 +189,10 @@ if(GDCM_USE_PVRG)
 endif()
 
 # main libs:
-target_link_libraries(gdcmMSFF gdcmIOD gdcmDSED gdcmDICT ${GDCM_LJPEG_LIBRARIES} ${GDCM_OPENJPEG_LIBRARIES})
+target_link_libraries(gdcmMSFF LINK_PUBLIC gdcmIOD gdcmDSED gdcmDICT)
+target_link_libraries(gdcmMSFF LINK_PRIVATE ${GDCM_LJPEG_LIBRARIES} ${GDCM_OPENJPEG_LIBRARIES})
 if(GDCM_USE_JPEGLS)
-  target_link_libraries(gdcmMSFF ${GDCM_CHARLS_LIBRARIES})
+  target_link_libraries(gdcmMSFF LINK_PRIVATE ${GDCM_CHARLS_LIBRARIES})
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX AND MINGW)
@@ -214,20 +207,20 @@ endif()
 if(WIN32)
   # For UuidCreate
   # http://msdn.microsoft.com/en-us/library/aa379205(VS.85).aspx
-  target_link_libraries(gdcmMSFF rpcrt4)
+  target_link_libraries(gdcmMSFF LINK_PRIVATE rpcrt4)
 #endif()
 else()
-target_link_libraries(gdcmMSFF ${GDCMUUID})
+  target_link_libraries(gdcmMSFF LINK_PRIVATE ${GDCMUUID})
 endif()
 if(GDCM_USE_SYSTEM_JSON)
-target_link_libraries(gdcmMSFF ${JSON_LIBRARIES})
+  target_link_libraries(gdcmMSFF LINK_PRIVATE ${JSON_LIBRARIES})
 endif()
 # handling of static lib within shared is a mess:
 #target_link_libraries(gdcmMSFF gdcmrle)
 set_target_properties(gdcmMSFF PROPERTIES ${GDCM_LIBRARY_PROPERTIES})
 if(BUILD_SHARED_LIBS)
-  set(_ill "gdcmDSED;gdcmDICT;gdcmIOD")
-  set_target_properties(gdcmMSFF PROPERTIES INTERFACE_LINK_LIBRARIES "${_ill}" LINK_INTERFACE_LIBRARIES "${_ill}")
+  #set(_ill "gdcmDSED;gdcmDICT;gdcmIOD")
+  #set_target_properties(gdcmMSFF PROPERTIES INTERFACE_LINK_LIBRARIES "${_ill}" LINK_INTERFACE_LIBRARIES "${_ill}")
 endif()
 
 # libs

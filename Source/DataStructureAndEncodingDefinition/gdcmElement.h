@@ -582,7 +582,7 @@ public:
     assert( bv ); // That would be bad...
     if( (VR::VRType)(VRToEncoding<TVR>::Mode) == VR::VRBINARY )
       {
-      const Type* array = (Type*)bv->GetPointer();
+      const Type* array = (const Type*)bv->GetPointer();
       if( array ) {
         assert( array ); // That would be bad...
         assert( Internal == 0 );
@@ -687,7 +687,7 @@ protected:
     assert( bv ); // That would be bad...
     if( (VR::VRType)(VRToEncoding<TVR>::Mode) == VR::VRBINARY )
       {
-      const Type* array = (Type*)bv->GetPointer();
+      const Type* array = (const Type*)bv->GetPointer();
       if( array ) {
         assert( array ); // That would be bad...
         assert( Internal == 0 );
@@ -719,7 +719,7 @@ class Element<TVR, VM::VM1_2> : public Element<TVR, VM::VM1_n>
 public:
   typedef Element<TVR, VM::VM1_n> Parent;
   void SetLength(int len) {
-    if( len != 1 || len != 2 ) return;
+    if( len != 1 && len != 2 ) return;
     Parent::SetLength(len);
   }
 };

@@ -262,7 +262,7 @@ bool Overlay::GrabOverlayFromPixelData(DataSet const &ds)
     //assert( Internal->BitPosition >= 12 );
     if( ds.FindDataElement( Tag(0x7fe0,0x0010) ) )
       {
-      gdcmErrorMacro("Could not find Pixel Data. Cannot extract Overlay." );
+      gdcmWarningMacro("Could not find Pixel Data. Cannot extract Overlay." );
       return false;
       }
     const DataElement &pixeldata = ds.GetDataElement( Tag(0x7fe0,0x0010) );
@@ -278,8 +278,8 @@ bool Overlay::GrabOverlayFromPixelData(DataSet const &ds)
     // SIEMENS_GBS_III-16-ACR_NEMA_1.acr is pain to support,
     // I cannot simply use the bv->GetLength I have to use the image dim:
     const unsigned int length = ovlength * 8 * 2; //bv->GetLength();
-    const uint16_t *p = (uint16_t*)array;
-    const uint16_t *end = (uint16_t*)(array + length);
+    const uint16_t *p = (const uint16_t*)array;
+    const uint16_t *end = (const uint16_t*)(array + length);
     //const unsigned int ovlength = length / (8*2);
     assert( 8 * ovlength == (unsigned int)Internal->Rows * Internal->Columns );
     if( Internal->Data.empty() )

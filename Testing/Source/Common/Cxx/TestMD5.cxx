@@ -67,7 +67,7 @@ static const char * const gdcmMD5SumFiles[][2] = {
 { "f03d1b8dc233c8c902c9fb4800ec6fe2"  , "D_CLUNIE_RG2_JPLY.dcm" },
 { "2fbc6e918c2d4ad7115addf46d870e78"  , "D_CLUNIE_RG2_RLE.dcm" },
 { "9966b6dbec23248fb2b6da9e7769ba20"  , "D_CLUNIE_RG3_JPLL.dcm" },
-{ "d06de3e3b941dce6c2c2c896fe42584b"  , "D_CLUNIE_RG3_JPLY.dcm" },
+{ "6867e0e4f8a1feb871a1ee8dcfac838e"  , "D_CLUNIE_RG3_JPLY.dcm" },
 { "4ed3c3920c7763b883c234bf8bf95662"  , "D_CLUNIE_RG3_RLE.dcm" },
 { "41dc2884a4f98d484da80c2bdb7e5fcc"  , "D_CLUNIE_SC1_JPLY.dcm" },
 { "ec344a1d113d5070cabebf17c0fa3330"  , "D_CLUNIE_SC1_RLE.dcm" },
@@ -229,6 +229,16 @@ static const char * const gdcmMD5SumFiles[][2] = {
 { "027faefc8031768dad1afc100f7aee27"  , "SC16BitsAllocated_8BitsStoredJ2K.dcm" },
 { "f7c4fbb93b0347101e21e36f223b4d46"  , "SC16BitsAllocated_8BitsStoredJPEG.dcm" },
 { "af580e6202a240005a5a05adc5c691f2"  , "SIEMENS_SYNGO-12-MONO2-LUTWrongLength512.dcm" },
+{ "236713383dd9d315415f3a5957707ad1" , "JPEGNote_empty.dcm" },
+{ "5b6f7f59dbefd679aa29e9082f100ff5" , "JPEGLS_CharLS_10742.dcm" },
+{ "66fe7d517941802364e7ad8dee7149e7" , "JPEGLosslessYBR_FULL_422.dcm" },
+{ "dcb4b29b7e0f0da441ab3e5cdcb506b4" , "JPEGNote_missing.dcm" },
+{ "2c30e74ee3db1895027932bb0566f54e" , "JPEGNote_bogus.dcm" },
+{ "c71a2cf95325395264c4dc6e15a898bd" , "RLEDebianBug816607Orig.dcm" },
+{ "e49c403278663d9739014ad1d57c276f" , "IllegalGroup2ImplicitTS.dcm" },
+{ "299df0175ea4d3ab1f02651f88ffe9f3" , "JPEG_LS_InvalidEscapeSequence_COM_padding.dcm" },
+{ "9add5fd3c83cc0946633e792f448f732" , "LengthOfItemLarger.dcm" },
+{ "b9fdef839a6b6ab33486bfd6b35de3a8" , "GE_MR_0025xx1bProtocolDataBlockXML.dcm" },
 
 { NULL, NULL}
 };

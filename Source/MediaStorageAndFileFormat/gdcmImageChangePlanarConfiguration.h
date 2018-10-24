@@ -22,7 +22,7 @@ namespace gdcm
 class DataElement;
 /**
  * \brief ImageChangePlanarConfiguration class
- * Class to change the Planar configuration of an input DICOM
+ * \details Class to change the Planar configuration of an input DICOM
  * By default it will change into the more usual reprensentation: PlanarConfiguration = 0
  */
 class GDCM_EXPORT ImageChangePlanarConfiguration : public ImageToImageFilter
@@ -66,7 +66,7 @@ size_t ImageChangePlanarConfiguration::RGBPlanesToRGBPixels(T *out, const T *r, 
     *pout++ = *b++;
     }
 
-  assert( (size_t)(pout - out) == 3 * s * sizeof(T) );
+  assert( (size_t)(pout - out) == 3 * s );
   return pout - out;
 }
 
@@ -80,7 +80,7 @@ size_t ImageChangePlanarConfiguration::RGBPixelsToRGBPlanes(T *r, T *g, T *b, co
     *g++ = *prgb++;
     *b++ = *prgb++;
     }
-  assert( (size_t)(prgb - rgb) == 3 * s * sizeof(T) );
+  assert( (size_t)(prgb - rgb) == 3 * s );
   return prgb - rgb;
 }
 

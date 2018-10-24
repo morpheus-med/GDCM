@@ -119,6 +119,7 @@ unsigned int VM::GetLength() const
   case VM::VM256:
     len = VMToLength<VM::VM256>::Length;
     break;
+  case VM::VM0:
   case VM::VM1_2:
   case VM::VM1_3:
   case VM::VM1_4:
@@ -348,9 +349,9 @@ VM::VMType VM::GetVMTypeFromLength(unsigned int length, unsigned int size)
     }
 }
 
-unsigned int VM::GetNumberOfElementsFromArray(const char *array, unsigned int length)
+size_t VM::GetNumberOfElementsFromArray(const char *array, size_t length)
 {
-  unsigned int c=0;
+  size_t c=0;
   if( !length || !array ) return 0;
   const char *parray = array;
   const char *end = array + length;

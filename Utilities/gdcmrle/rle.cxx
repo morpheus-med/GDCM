@@ -15,6 +15,7 @@
 #include "info.h"
 #include "io.h"
 
+#include <stdexcept>
 #include <vector>
 #include <algorithm> // req C++11
 #include <cstring> // memcpy
@@ -50,6 +51,8 @@ struct rle_encoder::internal
 
 rle_encoder::rle_encoder(source & s, image_info const & ii):internals(NULL)
 {
+  if( !ii.is_little_endian() )
+    throw std::runtime_error( "big endian is not supported" );
   internals = new internal;
   internals->img = ii;
 
@@ -68,7 +71,7 @@ rle_encoder::~rle_encoder()
 //  - on first pass it will detect if user input was found to be invalid and
 // update pixel_info accordingly.
 // - on the second pass when the user update with the proper pixel_info, then
-// the code will fails is the remaining of the header was found to be invalid
+// the code will fails if the remaining of the header was found to be invalid
 // as per DICOM spec.
 static inline bool check_header( header const & rh, pixel_info & pt )
 {
@@ -97,7 +100,7 @@ static inline bool check_header( header const & rh, pixel_info & pt )
       return false;
     }
 
-  // DICOM mandates all unused segments to have there offset be 0:
+  // DICOM mandates all unused segments to have their offsets be 0:
   for( int i = rh.num_segments; i < max_number_offset; ++i )
     if( rh.offset[i] != 0 )
       return false;
@@ -150,7 +153,7 @@ bool rle_encoder::write_header( dest & d )
   memcpy( internals->comp_pos, comp_pos, sizeof( comp_pos ) );
 
   bool b = src->seek( start ); // go back to start position
-  assert( b );
+  assert( b ); (void)b;
 
   return true;
 }
@@ -261,7 +264,7 @@ int rle_encoder::encode_row( dest & d )
   const int nc = pt.get_number_of_components();
   const int bpp = pt.get_number_of_bits_per_pixel();
   const int numsegs = internals->rh.num_segments;
-  assert( numsegs == (bpp / 8) * nc );
+  assert( numsegs == (bpp / 8) * nc ); (void)bpp; (void)nc;
 
   internals->invalues.resize( w * numsegs );
   internals->outvalues.resize( w * 2 ); // worse possible case ?
@@ -279,8 +282,8 @@ int rle_encoder::encode_row( dest & d )
     n += ret;
 
     const bool b = d.seek( comp_pos[s] );
-    assert(b);
-    d.write( &internals->outvalues[0], ret );
+    if( !b ) return -1;
+    if( d.write( &internals->outvalues[0], ret ) < 0 ) return -1;
     comp_pos[s] += ret;
     }
 
@@ -448,7 +451,7 @@ static int decode_internal( char * output, source & s, const int maxlen, const i
   while( numOutBytes < maxlen && !s.eof() )
     {
     int check = s.read( &b, 1 );
-    assert( check == 1 );
+    assert( check == 1 ); (void)check;
     if( b >= 0 /*&& b <= 127*/ ) /* 2nd is always true */
       {
       int nbytes = s.read( buffer, b + 1 );
@@ -474,7 +477,7 @@ static int decode_internal( char * output, source & s, const int maxlen, const i
       {
       rle_decoder::byte nextByte;
       const int nbytes = s.read( &nextByte, 1 );
-      assert( nbytes == 1 );
+      assert( nbytes == 1 ); (void)nbytes;
       int nrep = -b + 1; // number of repetitions
       memset(buffer, nextByte, nrep);
       assert( (cur - output) % nstride == 0 );
@@ -536,7 +539,7 @@ rle_decoder::streamsize_t rle_decoder::decode_frame( dest & d )
   for( int i = 0; i < internals->nsources; i++ )
     {
     source *s = internals->sources[i];
-    assert( s->tell() == internals->rh.offset[i] );
+    assert( s->tell() == internals->rh.offset[i] ); (void)s;
     }
   int numOutBytesFull = 0;
   const int mult = internals->img.get_pixel_info().compute_num_segments();

@@ -39,7 +39,7 @@ namespace gdcm
 
 /**
  * \brief VR class
- * This is adapted from DICOM standard
+ * \details This is adapted from DICOM standard
  * The biggest difference is the INVALID VR
  * and the composite one that differ from standard (more like an addition)
  * This allow us to represent all the possible case express in the DICOMV3 dict
@@ -338,6 +338,17 @@ inline unsigned int VR::GetSize() const
     VRTypeTemplateCase(UT)
     case VR::US_SS:
       return 2;
+
+    case VR::INVALID:
+    case VR::OB_OW:
+    case VR::US_SS_OW:
+    case VR::VL16:
+    case VR::VL32:
+    case VR::VRASCII:
+    case VR::VRBINARY:
+    case VR::VR_VM1:
+    case VR::VRALL:
+    case VR::VR_END:
     default:
        assert( 0 && "should not" );
   }

@@ -268,6 +268,7 @@ bool ImageCodec::DoPaddedCompositePixelCode(std::istream &is, std::ostream &os)
   //SwapCode sc = is.GetSwapCode();
 
   assert( !(buf_size % 2) );
+  bool ret = true;
   if( GetPixelFormat().GetBitsAllocated() == 16 )
     {
     for(size_t i = 0; i < buf_size/2; ++i)
@@ -301,10 +302,10 @@ bool ImageCodec::DoPaddedCompositePixelCode(std::istream &is, std::ostream &os)
     }
   else
     {
-    return false;
+    ret = false;
     }
   delete[] dummy_buffer;
-  return true;
+  return ret;
 }
 
 bool ImageCodec::DoInvertMonochrome(std::istream &is, std::ostream &os)
@@ -385,6 +386,62 @@ struct ApplyMask
   uint16_t pmask;
 };
 
+bool ImageCodec::CleanupUnusedBits(char * data, size_t datalen)
+{
+  if( !NeedOverlayCleanup ) return true;
+  assert( PF.GetBitsAllocated() > 8 );
+  if( PF.GetBitsAllocated() == 16 )
+    {
+    // pmask : to mask the 'unused bits' (may contain overlays)
+    uint16_t pmask = 0xffff;
+    pmask = (uint16_t)(pmask >> ( PF.GetBitsAllocated() - PF.GetBitsStored() ));
+
+    if( PF.GetPixelRepresentation() )
+      {
+      // smask : to check the 'sign' when BitsStored != BitsAllocated
+      uint16_t smask = 0x0001;
+      smask = (uint16_t)(
+        smask << ( 16 - (PF.GetBitsAllocated() - PF.GetBitsStored() + 1) ));
+      // nmask : to propagate sign bit on negative values
+      int16_t nmask = (int16_t)0x8000;
+      nmask = (int16_t)(nmask >> ( PF.GetBitsAllocated() - PF.GetBitsStored() - 1 ));
+
+      uint16_t *start = (uint16_t*)data;
+      for( uint16_t *p = start ; p != start + datalen / 2; ++p )
+        {
+        uint16_t c = *p;
+        c = (uint16_t)(c >> (PF.GetBitsStored() - PF.GetHighBit() - 1));
+        if ( c & smask )
+          {
+          c = (uint16_t)(c | nmask);
+          }
+        else
+          {
+          c = c & pmask;
+          }
+        *p = c;
+        }
+      }
+    else // Pixel are unsigned
+      {
+      uint16_t *start = (uint16_t*)data;
+      for( uint16_t *p = start ; p != start + datalen / 2; ++p )
+        {
+        uint16_t c = *p;
+        c = (uint16_t)(
+          (c >> (PF.GetBitsStored() - PF.GetHighBit() - 1)) & pmask);
+        *p = c;
+        }
+      }
+    }
+  else
+    {
+    assert(0); // TODO
+    return false;
+    }
+  return true;
+}
+
 // Cleanup the unused bits
 bool ImageCodec::DoOverlayCleanup(std::istream &is, std::ostream &os)
 {
@@ -454,6 +511,7 @@ bool ImageCodec::DoOverlayCleanup(std::istream &is, std::ostream &os)
   else
     {
     assert(0); // TODO
+    return false;
     }
   return true;
 }

@@ -24,7 +24,7 @@ namespace gdcm
 
 /**
  * \brief Pixmap class
- * A bitmap based image. Used as parent for both IconImage and the main Pixel Data Image
+ * \details A bitmap based image. Used as parent for both IconImage and the main Pixel Data Image
  * It does not contains any World Space information (IPP, IOP)
  *
  * \see PixmapReader
@@ -38,6 +38,8 @@ public:
 
   /// returns if Overlays are stored in the unused bit of the pixel data:
   bool AreOverlaysInPixelData() const;
+  /// returns if there are unused bits in the pixel data
+  bool UnusedBitsPresentInPixelData() const;
 
   /// Curve: group 50xx
   Curve& GetCurve(size_t i = 0) {

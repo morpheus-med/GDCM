@@ -369,15 +369,9 @@ std::pair<std::string, std::string> StringFilter::ToStringPairInternal(const Dat
   const VR &vr_read = de.GetVR();
   const VR &vr_dict = entry.GetVR();
 
-  if( vr_dict == VR::INVALID )
-    {
-    // FIXME This is a public element we do not support...
-    return ret;
-    }
-
   VR vr;
   // always prefer the vr from the file:
-  if( vr_read == VR::INVALID )
+  if( vr_read == VR::INVALID && vr_dict != VR::INVALID )
     {
     vr = vr_dict;
     }
@@ -389,7 +383,14 @@ std::pair<std::string, std::string> StringFilter::ToStringPairInternal(const Dat
     {
     vr = vr_read;
     }
-  if( vr.IsDual() ) // This mean vr was read from a dict entry:
+  if( vr == VR::INVALID )
+    {
+    // FIXME This is a public element we do not support...
+    gdcmDebugMacro( "DataElement does not specify the VR." );
+    return ret;
+    }
+
+   if( vr.IsDual() ) // This mean vr was read from a dict entry:
     {
     vr = DataSetHelper::ComputeVR(*F,ds, t);
     }
@@ -553,14 +554,15 @@ std::string StringFilter::FromString(const Tag&t, const char * value, size_t len
     return s;
     }
   VL::Type castLen = (VL::Type)len;
-  VL::Type count = VM::GetNumberOfElementsFromArray(value, castLen);
+  size_t count = VM::GetNumberOfElementsFromArray(value, castLen);
   VL vl = vm.GetLength() * vr.GetSizeof();
   if( vm.GetLength() == 0 )
     {
     // VM1_n
-    vl = count * vr.GetSizeof();
+    vl = (VL::Type)( (VL::Type)count * (VL::Type)vr.GetSizeof());
 #if !defined(NDEBUG)
-    VM check  = VM::GetVMTypeFromLength(count, 1);
+    VM check = VM::GetVMTypeFromLength(count, 1);
+    if( vm != VM::VM0 )
     assert( vm.Compatible( check ) );
 #endif
     }

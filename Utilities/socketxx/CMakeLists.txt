@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.7)
 if(POLICY CMP0022)
-  cmake_policy(SET CMP0022 OLD)
+  cmake_policy(SET CMP0022 NEW)
+endif()
+if(POLICY CMP0063)
+  cmake_policy(SET CMP0063 NEW)
 endif()
 
 # http://www.linuxhacker.at/socketxx

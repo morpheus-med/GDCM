@@ -1,6 +1,9 @@
 find_package(SWIG REQUIRED)
 include(${SWIG_USE_FILE})
 option(GDCM_AUTOLOAD_GDCMJNI "Automatically load gdcmjni" ON)
+option(GDCM_JAVA_INCLUDE_SRC "Add source (*.java) to jar file" OFF)
+option(GDCM_BUILD_FULL_JAVA_JAR "Build gdcm jar with encapsulated gdcmjni" OFF)
+mark_as_advanced(GDCM_AUTOLOAD_GDCMJNI GDCM_JAVA_INCLUDE_SRC GDCM_BUILD_FULL_JAVA_JAR)
 
 include_directories(
   "${GDCM_BINARY_DIR}/Source/Common"
@@ -36,6 +39,10 @@ SWIG_LINK_LIBRARIES(gdcmjni gdcmMSFF
   #${JNI_LIBRARIES}
 )
 set_target_properties(${SWIG_MODULE_gdcmjni_REAL_NAME} PROPERTIES LINK_INTERFACE_LIBRARIES "")
+if (WIN32)
+  # disable lib prefix on windows with mingw
+  set_target_properties(${SWIG_MODULE_gdcmjni_REAL_NAME} PROPERTIES PREFIX "")
+endif()
 set_property(TARGET ${SWIG_MODULE_gdcmjni_REAL_NAME} PROPERTY NO_SONAME 1)
 
 # swig-java dummy run:
@@ -65,6 +72,10 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     PROPERTIES COMPILE_FLAGS "-fno-strict-aliasing")
 endif()
 
+if(GDCM_JAVA_INCLUDE_SRC)
+  set(GDCM_JAVA_SRCS "gdcm/*.java")
+endif()
+
 add_custom_command(
   OUTPUT ${GDCM_LIBRARY_DIR}/gdcm.jar
 # 1. run the custom command only when the gdcmJAVA_wrap.cxx has been generated
@@ -77,15 +88,37 @@ add_custom_command(
 # 2. now that the *.class have been generated construct the jar file. We can
 # only rely on the gdcm.java / gdcm.class to build dependencie, I am pretty
 # sure it will break parallel builds... oh well
-  COMMAND ${Java_JAR_EXECUTABLE} ARGS cvf ${GDCM_LIBRARY_DIR}/gdcm.jar gdcm/*.class
+  COMMAND ${Java_JAR_EXECUTABLE} ARGS cf ${GDCM_LIBRARY_DIR}/gdcm.jar gdcm/*.class ${GDCM_JAVA_SRCS}
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/java
   DEPENDS "${swig_generated_file_fullname}"
-  COMMENT "javac *.java; jar cvf -> gdcm.jar"
+  COMMENT "javac *.java; jar cf -> gdcm.jar"
 )
+
+if(GDCM_BUILD_FULL_JAVA_JAR)
+  if(NOT GDCM_AUTOLOAD_GDCMJNI)
+    message(FATAL_ERROR "Dont know how to handle full jar without autoload option")
+  endif()
+  if(BUILD_SHARED_LIBS)
+    message(FATAL_ERROR "Dont know how to package gdcmjni with shared gdcm core libs.")
+  endif()
+  set(GDCM_JAVA_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
+  set(GDCM_JAVA_JAR_FULL gdcm-${GDCM_VERSION}-${GDCM_JAVA_SYSTEM_NAME}.jar)
+  add_custom_command(
+    OUTPUT ${GDCM_LIBRARY_DIR}/${GDCM_JAVA_JAR_FULL}
+    #COMMAND ${CMAKE_COMMAND} ARGS -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/java/lib
+    COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different $<TARGET_FILE:${SWIG_MODULE_gdcmjni_REAL_NAME}> ${CMAKE_CURRENT_BINARY_DIR}/java/
+    COMMAND ${Java_JAR_EXECUTABLE} ARGS cf ${GDCM_LIBRARY_DIR}/${GDCM_JAVA_JAR_FULL} gdcm/*.class ${GDCM_JAVA_SRCS} *gdcmjni*
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/java
+    DEPENDS ${GDCM_LIBRARY_DIR}/gdcm.jar
+    COMMENT "javac *.java; jar cf -> ${GDCM_JAVA_JAR_FULL}"
+  )
+endif()
 
 # 3. ok now add the target
 add_custom_target(GDCMJavaJar ALL
   DEPENDS ${GDCM_LIBRARY_DIR}/gdcm.jar
+  ${SWIG_MODULE_gdcmjni_REAL_NAME}
+  ${GDCM_LIBRARY_DIR}/${GDCM_JAVA_JAR_FULL}
   COMMENT "building gdcm.jar"
 )
 
@@ -96,4 +129,9 @@ if(NOT GDCM_INSTALL_NO_LIBRARIES)
   install(FILES ${GDCM_LIBRARY_DIR2}/gdcm.jar
     DESTINATION ${GDCM_INSTALL_JARMODULE_DIR} COMPONENT JavaModule
   )
+  if(GDCM_BUILD_FULL_JAVA_JAR)
+    install(FILES ${GDCM_LIBRARY_DIR2}/${GDCM_JAVA_JAR_FULL}
+      DESTINATION ${GDCM_INSTALL_JARMODULE_DIR} COMPONENT JavaModule
+    )
+  endif()
 endif()

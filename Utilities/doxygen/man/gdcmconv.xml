@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
 <?xml-stylesheet type="text/xsl" href="http://docbook.sourceforge.net/release/xsl-ns/current/manpages/docbook.xsl" ?>
+<!DOCTYPE Data [ <!ENTITY version SYSTEM 'version.txt'> ]>
 <refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink">
 <info>
 <author><personname><firstname>Mathieu</firstname><surname>Malaterre</surname></personname><contrib>Main developer</contrib></author>
@@ -9,7 +10,7 @@
     <refentrytitle>gdcmconv</refentrytitle>
     <manvolnum>1</manvolnum>
     <refmiscinfo class="source">GDCM</refmiscinfo>
-    <refmiscinfo class="version">VER_FULL</refmiscinfo>
+    <refmiscinfo class="version">&version;</refmiscinfo>
     <refmiscinfo class="manual">DICOM Manipulation.</refmiscinfo>
   </refmeta>
   <refnamediv><refname>gdcmconv</refname>
@@ -85,7 +86,7 @@ file-out  DICOM output filename
 <refsection xml:id="gdcmconv_1jpegls_options">
 <title>JPEG-LS options</title>
 
-<para><literallayout>  -e --lossy-error %*i       set error.
+<para><literallayout>  -e --allowed-error %*i       set allowed error.
 </literallayout></para>
 </refsection>
 <refsection xml:id="gdcmconv_1j2k_options">
@@ -169,7 +170,7 @@ file-out  DICOM output filename
 <para>convert GDCM 1.2.0 broken UN-2-bytes fields, </para>
 </listitem>
 <listitem>
-<para>&amp;... </para>
+<para>... </para>
 </listitem>
 <listitem>
 <para>All other broken files listed in the supported refsection.</para>
@@ -371,7 +372,7 @@ When no option other is used, only the dataset is inspected. So encapsulated Pix
 <para>For dicom3tools use: dcdump</para>
 </listitem>
 </itemizedlist>
-For reference, gdcmconv &#8211;raw will act as dcmdjpeg +cn +px, since it never tries to convert color space.</para>
+For reference, gdcmconv --raw will act as dcmdjpeg +cn +px, since it never tries to convert color space.</para>
 </refsection>
 <refsection xml:id="gdcmconv_1vim">
 <title>VIM: vimdiff</title>
@@ -379,7 +380,7 @@ For reference, gdcmconv &#8211;raw will act as dcmdjpeg +cn +px, since it never 
 <para>You can setup your favorite editor to compare the output, for instance in vim:</para>
 
 <para><literallayout><computeroutput>autocmd&#32;BufReadPre&#32;*.dcm&#32;set&#32;ro
-autocmd&#32;BufReadPost&#32;*.dcm&#32;silent&#32;%!dcmdump&#32;-M&#32;+uc&#32;&quot;%&quot;
+autocmd&#32;BufReadPost&#32;*.dcm&#32;silent&#32;%!dcmdump&#32;-M&#32;+uc&#32;"%"
 </computeroutput></literallayout></para>
 
 <para>then simply do:</para>

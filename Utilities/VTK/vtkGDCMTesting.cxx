@@ -202,7 +202,7 @@ static const char * const vtkgdcmMD5MetaImages[][3] = {
 { "00191113.dcm","7c17afc7815f18ebaecd99b9b07950f1", "bfff320d1b058e91b4819aa4560c16f7" },
 { "D_CLUNIE_CT1_JLSL.dcm","4efffce4cded3f8785d5ac4d3b11da41", "a109da372df2b85ff0a705fba62e9589" },
 { "D_CLUNIE_CT1_JLSN.dcm","bcf17a67d96046ce7a2b4de4495dbd4c", "7ca273fff6311586bd02ac983ccfbb6b" },
-{ "IM-0001-0066.CommandTag00.dcm","51450a7a49ce7bc0e6a4ce18eaef2fff", "12d1567ed81236cf3b01dc12766581a0" },
+{ "IM-0001-0066.CommandTag00.dcm","51450a7a49ce7bc0e6a4ce18eaef2fff", "fb8119f30ec32ff575789caa969180ca" },
 { "PHILIPS_Gyroscan-12-Jpeg_Extended_Process_2_4.dcm","2b1296ded36f37beb83e28fae108c280", "d93d2f78d845c7a132489aab92eadd32" },
 { "UnexpectedSequenceDelimiterInFixedLengthSequence.dcm","f507ab11e56de33d6f0195dd185b5c62", "9eb513314b2fcf25d895e18ffb2ead0b" },
 { "GDCMJ2K_TextGBR.dcm","9935ec525ea42203f3a535d4c1187ed4", "56238d3665ebdb0251d1161fb7f4edc6" },
@@ -218,6 +218,12 @@ static const char * const vtkgdcmMD5MetaImages[][3] = {
 { "SC16BitsAllocated_8BitsStoredJPEG.dcm","c9f9d07783496fa9a9e5b28a90603a70", "c164a73ba18ab4e88977921ffc7c3a65" },
 { "SC16BitsAllocated_8BitsStoredJ2K.dcm","96639bac776d875b02f6aa9b35ee2db7", "dbf83984984741c98205d77a947b442c" },
 { "SIEMENS_SYNGO-12-MONO2-LUTWrongLength512.dcm","81f79e2fcb3caec752e55be8077441dc", "4a5d8549791432b29948dd8ff63e2534" },
+{ "IllegalGroup2ImplicitTS.dcm","7c922536b5cf4143ce931ff5f552f588", "f666a95dde9ddfdec0cf9574a7985ae3" },
+{ "JPEGLosslessYBR_FULL_422.dcm","90a95c01f320809e3f6b6c720e78d457", "cdfb5dd0c999d88badeb00a16f96554f" },
+{ "JPEGNote_bogus.dcm","eeb1028e53ef4dcfc6b4100f8525be41", "161e9fd986ea87adf2596e8e16641f11" },
+{ "JPEGNote_empty.dcm","e6add795da6e0ccd4ed02f5689a61260", "464960d948dff0ded72b0380080f18a3" },
+{ "JPEGNote_missing.dcm","dce9f8853a528d423efc95a9bafee938", "464960d948dff0ded72b0380080f18a3" },
+{ "RLEDebianBug816607Orig.dcm","bb7bb73068f494c3cf947d2375af3501", "b85686dd3169b99725149abb00181254" },
 
 
 /* Stopping condition */

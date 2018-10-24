@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
 <?xml-stylesheet type="text/xsl" href="http://docbook.sourceforge.net/release/xsl-ns/current/manpages/docbook.xsl" ?>
+<!DOCTYPE Data [ <!ENTITY version SYSTEM 'version.txt'> ]>
 <refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink">
 <info>
 <author><personname><firstname>Mathieu</firstname><surname>Malaterre</surname></personname><contrib>Main developer</contrib></author>
@@ -9,7 +10,7 @@
     <refentrytitle>gdcmtar</refentrytitle>
     <manvolnum>1</manvolnum>
     <refmiscinfo class="source">GDCM</refmiscinfo>
-    <refmiscinfo class="version">VER_FULL</refmiscinfo>
+    <refmiscinfo class="version">&version;</refmiscinfo>
     <refmiscinfo class="manual">DICOM Manipulation.</refmiscinfo>
   </refmeta>
   <refnamediv><refname>gdcmtar</refname>
@@ -39,11 +40,12 @@ file-out  DICOM output filename
 <refsection xml:id="gdcmtar_1specific_options">
 <title>specific options</title>
 
-<para><literallayout>     --enhance    enhance (default)
-  -U --unenhance  unenhance
-  -M --mosaic     Split SIEMENS Mosaic image into multiple frames.
-  -p --pattern    Specify trailing file pattern.
-     --root-uid        Root UID.
+<para><literallayout>     --enhance        Enhance (default)
+  -U --unenhance      Unenhance
+  -M --mosaic         Split SIEMENS Mosaic image into multiple frames.
+     --mosaic-private When splitting SIEMENS Mosaic image into multiple frames, preserve private attributes (advanced user only).
+  -p --pattern        Specify trailing file pattern.
+     --root-uid       Root UID.
 </literallayout></para>
 </refsection>
 <refsection xml:id="gdcmtar_1general_options">
@@ -79,7 +81,7 @@ file-out  DICOM output filename
 <title>Typical usage</title>
 <refsection xml:id="gdcmtar_1mosaic">
 <title>SIEMENS Mosaic</title>
-
+<para>This option will turn a 2D frame containing sub-frame of a SIEMENS MOSAIC into a set of MR Image Storage (legacy).</para>
 <para><literallayout>$ gdcminfo MR-sonata-3D-as-Tile.dcm
 </literallayout></para>
 
@@ -87,7 +89,7 @@ file-out  DICOM output filename
 TransferSyntax is 1.2.840.10008.1.2.1 [Explicit VR Little Endian]
 NumberOfDimensions: 2
 Dimensions: (384,384,1)
-\&amp;...
+...
 </literallayout></para>
 
 <para><literallayout>$ gdcmtar --mosaic -i MR-sonata-3D-as-Tile.dcm -o mosaic --pattern %03d.dcm
@@ -135,8 +137,13 @@ Dimensions: (384,384,1)
 TransferSyntax is 1.2.840.10008.1.2.1 [Explicit VR Little Endian]
 NumberOfDimensions: 2
 Dimensions: (64,64,1)
-\&amp;...
+...
 </literallayout></para>
+<para>By default all private attributes are removed since they may not match the newly generated SOP Instance. One way to preserve the private attributes is to use the --mosaic-private command line option</para>
+<para><literallayout>$ gdcmtar --mosaic --mosaic-private -i MR-sonata-3D-as-Tile.dcm -o mosaic --pattern %03d.dcm
+</literallayout></para>
+
+
 </refsection>
 </refsection>
 <refsection xml:id="gdcmtar_1see_also">
