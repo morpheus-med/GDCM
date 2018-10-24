@@ -1,0 +1,24 @@
+#!/bin/bash
+
+declare DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+cd ${DIR}
+mkdir -p cmake-build
+cd cmake-build
+
+# CFLAGS=-fvisibility=hidden CXXFLAGS=-fvisibility=hidden
+# causes some libraries to fail to link against libgdcmcharls.so
+# possible bug since this is recommended in PACKAGER
+cmake \
+      -DCMAKE_SKIP_RPATH:BOOL=ON \
+      -DCMAKE_INSTALL_PREFIX:PATH=/usr \
+      -DGDCM_BUILD_SHARED_LIBS=ON \
+      -DGDCM_BUILD_APPLICATIONS:BOOL=ON \
+      -DGDCM_BUILD_TESTING:BOOL=ON \
+      -DGDCM_DOCUMENTATION:BOOL=OFF \
+      -DGDCM_DOCUMENTATION_SKIP_MANPAGES:BOOL=ON \
+      -DGDCM_USE_SYSTEM_ZLIB:BOOL=ON \
+      -DGDCM_USE_SYSTEM_OPENSSL:BOOL=ON \
+      ../
+NPROC=`grep -c ^processor /proc/cpuinfo`
+make -j${NPROC}
+make install

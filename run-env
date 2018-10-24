@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# can specify --user $(id -u):$(id -g)
+# this allows rm without sudo on the host but then can not make install
+docker-compose run --rm dev

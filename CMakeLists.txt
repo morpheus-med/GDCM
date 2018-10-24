@@ -18,7 +18,8 @@ if( POLICY CMP0074 )
   cmake_policy(SET CMP0074 NEW)
 endif()
 project(GDCM)
-set(CMAKE_CXX_STANDARD 98)
+# Use c++11 features for nlohmann:json suport
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
 mark_as_advanced(CMAKE_BACKWARDS_COMPATIBILITY CMAKE_BUILD_TYPE CMAKE_INSTALL_PREFIX)
 set(GDCM_CMAKE_DIR "${GDCM_SOURCE_DIR}/CMake" CACHE INTERNAL "")
@@ -100,9 +101,6 @@ if(GDCM_MINOR_VERSION MATCHES "[02468]$")
 else()
   set(GDCM_BUILD_TESTING_DEFAULT ON)
 endif()
-
-# Use c++11 features for nlohmann:json suport
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 #-----------------------------------------------------------------------------
 # Disable deprecation warnings for standard C and STL functions in VS2005
