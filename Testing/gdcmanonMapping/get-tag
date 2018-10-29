@@ -1,0 +1,5 @@
+#!/bin/bash
+
+file=${1}
+tag=${2}
+gdcmdump -i ${file} | grep "${tag}" | cut -d"[" -f2 | cut -d"]" -f1

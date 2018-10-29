@@ -21,7 +21,7 @@ namespace gdcm
 
 /**
  * \brief Class for generating unique UID
- * \details 
+ * \details
  * \note bla
  * Usage:
  * When constructing a Series or Study UID, user *has* to keep around the UID,
@@ -64,6 +64,7 @@ public:
   /// const char *uid2 = uid.Generate();
   /// since uid1 == uid2
   const char* Generate();
+  const char* Generate(const std::string& source);
 
   /// Find out if the string is a valid UID or not
   /// \todo: Move that in DataStructureAndEncoding (see FileMetaInformation::CheckFileMetaInformation)

@@ -325,6 +325,10 @@ Anonymizer::~Anonymizer()
 {
 }
 
+void Anonymizer::set_uid_salt(const std::string& uid_salt) {
+  this->uid_salt = uid_salt;
+}
+
 bool Anonymizer::Empty( Tag const &t)
 {
   // There is a secret code path to make it work for VR::SQ since operation is just 'make empty'
@@ -1116,7 +1120,14 @@ bool Anonymizer::BALCPProtect(DataSet &ds, Tag const & tag, IOD const & iod)
         {
         if( const ByteValue *bv = copy.GetByteValue() )
           {
-          UIDToAnonymize = std::string( bv->GetPointer(), bv->GetLength() );
+          // UI VR with odd length get padded with a null byte
+          // this should not end up in the decoded string, gdcm bug?
+          size_t length = bv->GetLength();
+          if(length > 0 && bv->GetPointer()[length - 1] == '\0')
+          {
+            length -= 1;
+          }
+          UIDToAnonymize = std::string( bv->GetPointer(), length );
           }
         }
 
@@ -1125,7 +1136,7 @@ bool Anonymizer::BALCPProtect(DataSet &ds, Tag const & tag, IOD const & iod)
         {
         if ( dummyMapUIDTags.count( UIDToAnonymize ) == 0 )
           {
-          anonymizedUID = uid.Generate();
+          anonymizedUID = uid.Generate(UIDToAnonymize + uid_salt);
           dummyMapUIDTags[ UIDToAnonymize ] = anonymizedUID;
           }
         else

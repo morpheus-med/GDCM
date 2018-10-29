@@ -33,6 +33,24 @@
 #include <rpc.h>
 #endif
 
+#include <iostream>
+#include <openssl/evp.h>
+#include <algorithm>
+
+namespace {
+  void hash_sha256(const std::string& input, unsigned char* output, unsigned int output_size) {
+    EVP_MD_CTX* context = EVP_MD_CTX_create();
+    const EVP_MD* digest = EVP_sha256();
+    EVP_DigestInit_ex(context, digest, NULL);
+    EVP_DigestUpdate(context, input.c_str(), input.length());
+    unsigned char hash[EVP_MAX_MD_SIZE];
+    unsigned int hash_size = 0;
+    EVP_DigestFinal_ex(context, hash, &hash_size);
+    EVP_MD_CTX_destroy(context);
+    memcpy(output, hash, std::min(output_size, hash_size));
+  }
+}
+
 namespace gdcm
 {
 
@@ -91,12 +109,17 @@ struct fnv_hash
     }
 };
 
+const char* UIDGenerator::Generate()
+{
+  Generate("");
+}
+
 /*
 Implementation note: You cannot set a root of more than 26 bytes (which should already
 enough for most people).
 Since implementation is only playing with the first 8bits of the upper
 */
-const char* UIDGenerator::Generate()
+const char* UIDGenerator::Generate(const std::string& source)
 {
   Unique = GetRoot();
   // We choose here a value of 26 so that we can still have 37 bytes free to
@@ -107,7 +130,12 @@ const char* UIDGenerator::Generate()
     return NULL;
     }
   unsigned char uuid[16];
-  bool r = UIDGenerator::GenerateUUID(uuid);
+  bool r = true;
+  if(source.empty()){
+    r = UIDGenerator::GenerateUUID(uuid);
+  } else {
+    hash_sha256(source, uuid, sizeof(uuid));
+  }
   // This should only happen in some obscure cases. Since the creation of UUID failed
   // I should try to go any further and make sure the user's computer crash and burn
   // right away

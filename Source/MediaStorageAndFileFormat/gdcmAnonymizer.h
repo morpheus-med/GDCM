@@ -81,6 +81,7 @@ public:
   ~Anonymizer();
 
   nlohmann::json file_phi;
+  void set_uid_salt(const std::string& uid_salt);
 
   /// Make Tag t empty (if not found tag will be created)
   /// Warning: does not handle SQ element
@@ -156,6 +157,8 @@ private:
   // I would prefer to have a smart pointer to DataSet but DataSet does not derive from Object...
   SmartPointer<File> F;
   CryptographicMessageSyntax *CMS;
+
+  std::string uid_salt;
 
   typedef std::pair< Tag, std::string > TagValueKey;
   typedef std::map< TagValueKey, std::string > DummyMapNonUIDTags;
