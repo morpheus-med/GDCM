@@ -10,3 +10,5 @@ CMakeLists.txt.user*
 
 # kdevelop files
 *.kdev*
+
+cmake-build/

@@ -239,6 +239,20 @@ static const char * const gdcmMediaStorageDataFiles[][2] = {
 { "SC16BitsAllocated_8BitsStoredJPEG.dcm" , "1.2.840.10008.5.1.4.1.1.7" },
 { "SC16BitsAllocated_8BitsStoredJ2K.dcm" , "1.2.840.10008.5.1.4.1.1.7" },
 { "SIEMENS_SYNGO-12-MONO2-LUTWrongLength512.dcm" , "1.2.840.10008.5.1.4.1.1.4" },
+{ "JPEGNote_empty.dcm" , "1.2.840.10008.5.1.4.1.1.7" },
+{ "JPEGLS_CharLS_10742.dcm" , "1.2.840.10008.5.1.4.1.1.7" },
+{ "JPEGLosslessYBR_FULL_422.dcm" , "1.2.840.10008.5.1.4.1.1.7" },
+{ "JPEGNote_missing.dcm" , "1.2.840.10008.5.1.4.1.1.7" },
+{ "JPEGNote_bogus.dcm" , "1.2.840.10008.5.1.4.1.1.7" },
+{ "RLEDebianBug816607Orig.dcm" , "1.2.840.10008.5.1.4.1.1.7" },
+{ "IllegalGroup2ImplicitTS.dcm" , "1.2.840.10008.5.1.4.1.1.1" },
+{ "JPEG_LS_InvalidEscapeSequence_COM_padding.dcm" , "1.2.840.10008.5.1.4.1.1.7" },
+{ "LengthOfItemLarger.dcm" , "1.2.840.10008.5.1.4.1.1.4" },
+{ "GE_MR_0025xx1bProtocolDataBlockXML.dcm" , "1.2.840.10008.5.1.4.1.1.4" },
+{ "MITRA_CORNELL.dcm" , "1.2.840.10008.5.1.4.1.1.7" },
+{ "EmptyIcon_Bug417.dcm" , "1.2.840.10008.5.1.4.1.1.2" },
+{ "EnhancedWithIPPPerFrameIOPShared.dcm" , "1.2.840.10008.5.1.4.1.1.13.1.2" },
+{ "FUJI-ffff-MONO1-J2K.dcm" , "1.2.840.10008.5.1.4.1.1.1" },
 
 /* Stopping condition */
 { 0 ,0 }

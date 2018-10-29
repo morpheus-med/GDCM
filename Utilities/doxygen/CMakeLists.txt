@@ -168,7 +168,7 @@ ${CMAKE_CURRENT_BINARY_DIR}/latex/Makefile
       DEPENDS ${GDCM_DOC_TARBALL}
       COMMENT  "GDCM: Executing GDCMDoxygenDoc"
     )
-    add_dependency(DoxygenDoc GDCMDoxygenDoc)
+    add_dependencies(DoxygenDoc GDCMDoxygenDoc)
   endif()
 
   # Install html pages:
@@ -225,7 +225,9 @@ ${CMAKE_CURRENT_BINARY_DIR}/latex/Makefile
   endif()
 endif()
 
-if(NOT GDCM_DOCUMENTATION_SKIP_MANPAGES)
+option(GDCM_BUILD_DOCBOOK_MANPAGES "Build man pages from XML docbook ?" ON)
+mark_as_advanced(GDCM_BUILD_DOCBOOK_MANPAGES)
+if(GDCM_BUILD_DOCBOOK_MANPAGES)
 set(MANPAGES_XML
     gdcm2pnm
     gdcm2vtk
@@ -255,7 +257,7 @@ if(LIBXSLT_XSLTPROC_EXECUTABLE)
   if(NOT DEFINED GDCM_MANPAGES_USE_NONET)
     set(GDCM_MANPAGES_USE_NONET FALSE)
     # By default I want nonet on Debian (docbook-xsl-ns)
-    # on fedora you need to install docbook5-style-xsl-1.78.1-3.fc21.noarch
+    # on fedora you need to install docbook-style-xsl
     if(EXISTS /etc/xml/catalog)
       # https://cmake.org/pipermail/cmake/2007-May/014317.html
       file(READ /etc/xml/catalog xml_catalog_in)
@@ -268,7 +270,7 @@ if(LIBXSLT_XSLTPROC_EXECUTABLE)
         string(REGEX MATCH "^.*systemIdStartString=\"http://docbook.sourceforge.net/release/xsl-ns/\".*" out1 ${line})
         string(REGEX REPLACE "^.*systemIdStartString=\"http://docbook.sourceforge.net/release/xsl-ns/\".*\"([A-Za-z ]*)\".*" "\\1" output_variable ${line})
         if(out1)
-          message("Your docbook install was found here :${output_variable}")
+          message(STATUS "Your docbook install was found here :${output_variable}")
           set(DOCBOOK_REWRITE_PREFIX_FOUND TRUE)
         endif()
       endforeach()
@@ -276,7 +278,7 @@ if(LIBXSLT_XSLTPROC_EXECUTABLE)
       if(DOCBOOK_REWRITE_PREFIX_FOUND)
         set(GDCM_MANPAGES_USE_NONET TRUE)
       else()
-        message(WARNING "Could not find the location of your docbook-xsl-ns installation")
+        message(WARNING "Could not find the location of your docbook-xsl-ns installation. Please make sure your internet connection works. Or skip man pages generation: GDCM_BUILD_DOCBOOK_MANPAGES:BOOL=OFF.")
       endif()
     else()
       message(STATUS "Could not find /etc/xml/catalog")
@@ -289,6 +291,7 @@ else()
   find_program(MSXSL_EXECUTABLE
     msxsl
     )
+  mark_as_advanced(MSXSL_EXECUTABLE)
   if(MSXSL_EXECUTABLE)
     set(XSLT_PROCESSOR ${MSXSL_EXECUTABLE})
     set(XSLT_PROCESSOR_ARG "-pi")
@@ -301,27 +304,30 @@ else()
 # -> http://stackoverflow.com/a/16605034/136285 ??
   endif()
 endif()
-if(XSLT_PROCESSOR)
-foreach(docbook ${MANPAGES_XML})
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${docbook}.1
-    COMMAND ${XSLT_PROCESSOR} ${XSLT_PROCESSOR_ARG} ${CMAKE_CURRENT_SOURCE_DIR}/man/${docbook}.xml
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/man/${docbook}.xml
+  if(XSLT_PROCESSOR)
+    configure_file(version.txt.in
+      version.txt @ONLY)
+    foreach(docbook ${MANPAGES_XML})
+      add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${docbook}.1
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/man/${docbook}.xml ${CMAKE_CURRENT_BINARY_DIR}/${docbook}.xml
+        COMMAND ${XSLT_PROCESSOR} ${XSLT_PROCESSOR_ARG} ${CMAKE_CURRENT_BINARY_DIR}/${docbook}.xml
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/man/${docbook}.xml
+        )
+    list(APPEND MANPAGES
+      ${CMAKE_CURRENT_BINARY_DIR}/${docbook}.1
+      )
+  endforeach()
+  add_custom_target(DOCBOOK_MANPAGES
+    ALL
+    DEPENDS ${MANPAGES}
+    COMMENT  "docbook manpages"
     )
-  list(APPEND MANPAGES
-    ${CMAKE_CURRENT_BINARY_DIR}/${docbook}.1
-    )
-endforeach()
-add_custom_target(DOCBOOK_MANPAGES
-  ALL
-  DEPENDS ${MANPAGES}
-  COMMENT  "docbook manpages"
+  install(FILES
+    ${MANPAGES}
+    DESTINATION ${GDCM_INSTALL_MAN_DIR}/man1 COMPONENT DebugDevel
   )
-install(FILES
-  ${MANPAGES}
-  DESTINATION ${GDCM_INSTALL_MAN_DIR}/man1 COMPONENT DebugDevel
-)
-else()
-  message(WARNING "Cannot build man page from docbook (need an XSL processor)")
-endif()
-endif() #NOT GDCM_DOCUMENTATION_SKIP_MANPAGES
+  else()
+    message(WARNING "Cannot build man page from docbook (need an XSL processor)")
+  endif()
+endif() # GDCM_BUILD_DOCBOOK_MANPAGES

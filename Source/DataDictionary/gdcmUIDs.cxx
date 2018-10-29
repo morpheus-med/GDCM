@@ -363,6 +363,12 @@ DICOM_Conformance_Statement_MR_R2.6.pdf
 {"1.2.840.10008.1.2.4.102","MPEG-4 AVC/H.264 High Profile / Level 4.1"},
 {"1.2.840.10008.1.2.4.103","MPEG-4 AVC/H.264 BD-compatible High Profile / Level 4.1"},
 {"1.2.840.10008.5.1.4.1.1.130", "Enhanced PET Image Storage" },
+{"1.2.840.10008.5.1.4.1.1.14.1","Intravascular Optical Coherence Tomography Image Storage - For Presentation"},
+{"1.2.840.10008.5.1.4.1.1.14.2","Intravascular Optical Coherence Tomography Image Storage - For Processing"},
+{"1.2.840.10008.5.1.4.1.1.2.2", "Legacy Converted Enhanced CT Image Storage" },
+{"1.2.840.10008.5.1.4.1.1.4.4", "Legacy Converted Enhanced MR Image Storage" },
+{"1.2.840.10008.5.1.4.1.1.128.1", "Legacy Converted Enhanced PET Image Storage" },
+ 
 { 0, 0 }
 };
 

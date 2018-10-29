@@ -31,6 +31,8 @@
 #include "gdcmSystem.h"
 #include "gdcmDirectory.h"
 #include "gdcmImageHelper.h"
+#include "gdcmSplitMosaicFilter.h"
+#include "gdcmImageChangePlanarConfiguration.h"
 
 #ifdef GDCM_USE_SYSTEM_POPPLER
 #include <poppler/poppler-config.h>
@@ -109,7 +111,7 @@ static int checkdeflated(const char *name)
     return 1;
     }
   buf = (unsigned char*)malloc(size);
-  if (buf != NULL && (size1 = fread(buf, 1, size, in)) != size) {
+  if (buf != NULL && (size1 = (unsigned long)fread(buf, 1, size, in)) != size) {
     free(buf);
     buf = NULL;
     fprintf( stderr, "could not fread: %lu bytes != %lu\n", size, size1 );
@@ -187,15 +189,20 @@ static int checkdeflated(const char *name)
 static std::string getInfoDate(Dict *infoDict, const char *key)
 {
   Object obj;
-  char *s;
+  const char *s;
   int year, mon, day, hour, min, sec, n;
   struct tm tmStruct;
   //char buf[256];
   std::string out;
 
+#ifdef LIBPOPPLER_NEW_OBJECT_API
+  if ((obj = infoDict->lookup((char*)key)).isString())
+#else
   if (infoDict->lookup((char*)key, &obj)->isString())
+#endif
     {
-    s = obj.getString()->getCString();
+    const GooString* gs = obj.getString();
+    s = gs->getCString();
     if (s[0] == 'D' && s[1] == ':')
       {
       s += 2;
@@ -241,21 +248,27 @@ static std::string getInfoDate(Dict *infoDict, const char *key)
         out = date;
       }
     }
+#ifndef LIBPOPPLER_NEW_OBJECT_API
   obj.free();
+#endif
   return out;
 }
 
 static std::string getInfoString(Dict *infoDict, const char *key, UnicodeMap *uMap)
 {
   Object obj;
-  GooString *s1;
+  const GooString *s1;
   GBool isUnicode;
   Unicode u;
   char buf[8];
   int i, n;
   std::string out;
 
+#ifdef LIBPOPPLER_NEW_OBJECT_API
+  if ((obj = infoDict->lookup((char*)key)).isString())
+#else
   if (infoDict->lookup((char*)key, &obj)->isString())
+#endif
     {
     s1 = obj.getString();
     if ((s1->getChar(0) & 0xff) == 0xfe &&
@@ -287,7 +300,9 @@ static std::string getInfoString(Dict *infoDict, const char *key, UnicodeMap *uM
       out.append( std::string(buf, n) );
       }
     }
+#ifndef LIBPOPPLER_NEW_OBJECT_API
   obj.free();
+#endif
   return out;
 }
 #endif
@@ -319,6 +334,7 @@ static void PrintHelp()
 //  std::cout << "  -b --check-big-endian   check if file is ." << std::endl;
   std::cout << "     --force-rescale    force rescale." << std::endl;
   std::cout << "     --force-spacing    force spacing." << std::endl;
+  std::cout << "     --mosaic           dump image information of MOSAIC." << std::endl;
 
   std::cout << "General Options:" << std::endl;
   std::cout << "  -V --verbose   more verbose (warning+error)." << std::endl;
@@ -334,6 +350,7 @@ static void PrintHelp()
   int deflated = 0; // check deflated
   int checkcompression = 0;
   int md5sum = 0;
+  int mosaic = 0;
 
 static int ProcessOneFile( std::string const & filename, gdcm::Defs const & defs )
 {
@@ -382,34 +399,63 @@ static int ProcessOneFile( std::string const & filename, gdcm::Defs const & defs
       std::cerr << "Could not read image from: " << filename << std::endl;
       return 1;
       }
-    //const gdcm::File &file = reader.GetFile();
-    //const gdcm::DataSet &ds = file.GetDataSet();
+    gdcm::SplitMosaicFilter filter;
+    const gdcm::Image *pimage = NULL;
     const gdcm::Image &image = reader.GetImage();
-    const double *dircos = image.GetDirectionCosines();
+    if( mosaic )
+    {
+      filter.SetImage( image );
+      filter.SetFile( reader.GetFile() );
+      if( !filter.Split() )
+      {
+      std::cerr << "Could not split mosaic : " << filename << std::endl;
+      return 1;
+      }
+      pimage = &filter.GetImage();
+    }
+    else
+    {
+    pimage = &image;
+    }
+    const double *dircos = pimage->GetDirectionCosines();
     gdcm::Orientation::OrientationType type = gdcm::Orientation::GetType(dircos);
     const char *label = gdcm::Orientation::GetLabel( type );
-    image.Print( std::cout );
+    pimage->Print( std::cout );
     std::cout << "Orientation Label: " << label << std::endl;
     if( checkcompression )
       {
-      bool lossy = image.IsLossy();
+      bool lossy = pimage->IsLossy();
       std::cout << "Encapsulated Stream was found to be: " << (lossy ? "lossy" : "lossless") << std::endl;
       }
 
     if( md5sum )
       {
-      char *buffer = new char[ image.GetBufferLength() ];
-      if( image.GetBuffer( buffer ) )
+      int ret = 0;
+      char *buffer = new char[ pimage->GetBufferLength() ];
+      gdcm::ImageChangePlanarConfiguration icpc;
+      icpc.SetPlanarConfiguration( 0 );
+      icpc.SetInput( *pimage );
+      bool b = icpc.Change();
+      if( !b )
+        {
+        std::cerr << "Could not change the Planar Configuration: " << filename << std::endl;
+        return 1;
+        }
+      pimage = &icpc.GetOutput();
+
+      if( pimage->GetBuffer( buffer ) )
         {
         char digest[33] = {};
-        gdcm::MD5::Compute( buffer, image.GetBufferLength(), digest );
+        gdcm::MD5::Compute( buffer, pimage->GetBufferLength(), digest );
         std::cout << "md5sum: " << digest << std::endl;
         }
       else
         {
-        std::cout << "Problem decompressing file: " << filename << std::endl;
+        std::cerr << "Problem decompressing file: " << filename << std::endl;
+        ret = 1;
         }
       delete[] buffer;
+      return ret;
       }
     }
   else if ( ms == gdcm::MediaStorage::EncapsulatedPDFStorage )
@@ -434,7 +480,11 @@ static int ProcessOneFile( std::string const & filename, gdcm::Defs const & defs
     MemStream *appearStream;
 
     appearStream = new MemStream((char*)bv->GetPointer(), 0,
+#ifdef LIBPOPPLER_NEW_OBJECT_API
+      bv->GetLength(), std::move(appearDict));
+#else
       bv->GetLength(), &appearDict);
+#endif
     GooString *ownerPW, *userPW;
     ownerPW = NULL;
     userPW = NULL;
@@ -462,7 +512,11 @@ static int ProcessOneFile( std::string const & filename, gdcm::Defs const & defs
     Object info;
     if (doc->isOk())
       {
+#ifdef LIBPOPPLER_NEW_OBJECT_API
+      info = doc->getDocInfo();
+#else
       doc->getDocInfo(&info);
+#endif
       if (info.isDict())
         {
         title        = getInfoString(info.getDict(), "Title",    uMap);
@@ -473,7 +527,9 @@ static int ProcessOneFile( std::string const & filename, gdcm::Defs const & defs
         producer     = getInfoString(info.getDict(), "Producer", uMap);
         creationdate = getInfoDate(  info.getDict(), "CreationDate"  );
         moddate      = getInfoDate(  info.getDict(), "ModDate"       );
+#ifndef LIBPOPPLER_NEW_OBJECT_API
         info.free();
+#endif
         }
 #ifdef LIBPOPPLER_CATALOG_HAS_STRUCTTREEROOT
       const char *tagged = doc->getStructTreeRoot() ? "yes" : "no";
@@ -563,6 +619,7 @@ int main(int argc, char *argv[])
         {"check-compression", 0, &checkcompression, 1},
         {"force-rescale", 0, &forcerescale, 1},
         {"force-spacing", 0, &forcespacing, 1},
+        {"mosaic", 0, &mosaic, 1},
 
         {"verbose", 0, &verbose, 1},
         {"warning", 0, &warning, 1},

@@ -19,7 +19,7 @@ echo ""
 
 major=2
 minor=6
-patch=3
+patch=8
 dirversion="$major.$minor"
 version="$major.$minor.$patch"
 version2="$major-$minor-$patch"
@@ -127,6 +127,8 @@ check_exit_value $? "vtkgdcmDoxygenDoc did not return properly" || exit 1
 # Warning need to create /manually/ the subfolder:
 # https://sourceforge.net/projects/gdcm/files/gdcm%202.x/#folder-create
 
+# Update default version:
+#https://sourceforge.net/p/forge/documentation/Using%20the%20Release%20API/
 #rsync -e ssh GDCM-$version-Linux-x86_64.tar.gz          "malat,gdcm@frs.sourceforge.net:/home/frs/project/g/gd/gdcm/gdcm\ 2.x/GDCM\ $version"
 #check_exit_value $? "rsync did not return properly" || exit 1
 #rsync -e ssh GDCM-$version-Linux-x86_64.tar.bz2         "malat,gdcm@frs.sourceforge.net:/home/frs/project/g/gd/gdcm/gdcm\ 2.x/GDCM\ $version"
@@ -135,11 +137,17 @@ check_exit_value $? "vtkgdcmDoxygenDoc did not return properly" || exit 1
 #check_exit_value $? "rsync did not return properly" || exit 1
 rsync -e ssh gdcm-$version.tar.gz                       "malat,gdcm@frs.sourceforge.net:/home/frs/project/g/gd/gdcm/gdcm\ 2.x/GDCM\ $version"
 check_exit_value $? "rsync did not return properly" || exit 1
+
+def_prop="default=windows&default=mac&default=linux&default=bsd&default=solaris&default=others"
+def_path="https://sourceforge.net/projects/gdcm/files/gdcm%202.x/GDCM%20$version/gdcm-$version.tar.gz"
+curl -k -H "Accept: application/json" -X PUT -d $def_prop -d "api_key=$SFAPIKEY" $def_path
+
 rsync -e ssh gdcm-$version.tar.bz2                      "malat,gdcm@frs.sourceforge.net:/home/frs/project/g/gd/gdcm/gdcm\ 2.x/GDCM\ $version"
 check_exit_value $? "rsync did not return properly" || exit 1
 rsync -e ssh Utilities/doxygen/gdcm-$version-doc.tar.gz "malat,gdcm@frs.sourceforge.net:/home/frs/project/g/gd/gdcm/gdcm\ 2.x/GDCM\ $version"
 check_exit_value $? "rsync did not return properly" || exit 1
-rsync -e ssh $basedir/gdcm/Utilities/Release/README.md "malat,gdcm@frs.sourceforge.net:/home/frs/project/g/gd/gdcm/gdcm\ 2.x/GDCM\ $version"
+sed "s/vVERSION/v$version/" $basedir/gdcm/Utilities/Release/README.md > $basedir/README.md
+rsync -e ssh $basedir/README.md "malat,gdcm@frs.sourceforge.net:/home/frs/project/g/gd/gdcm/gdcm\ 2.x/GDCM\ $version"
 check_exit_value $? "rsync did not return properly" || exit 1
 
 rsync -a -r Utilities/doxygen/html malat,gdcm@web.sourceforge.net:htdocs/$dirversion

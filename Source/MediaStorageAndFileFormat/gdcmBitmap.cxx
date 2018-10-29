@@ -96,8 +96,18 @@ void Bitmap::SetDimensions(const unsigned int *dims)
 {
   assert( NumberOfDimensions );
   //assert( Dimensions.empty() );
+#if 0
   Dimensions = std::vector<unsigned int>(dims,
     dims+NumberOfDimensions);
+#else
+  assert( Dimensions.size() == 3 );
+  Dimensions[0] = dims[0];
+  Dimensions[1] = dims[1];
+  if( NumberOfDimensions == 2 )
+    Dimensions[2] = 1;
+  else
+    Dimensions[2] = dims[2];
+#endif
 }
 
 void Bitmap::SetDimension(unsigned int idx, unsigned int dim)
@@ -122,7 +132,6 @@ unsigned int Bitmap::GetPlanarConfiguration() const
 {
   if( PlanarConfiguration && PF.GetSamplesPerPixel() != 3 )
     {
-    assert(0);
     // LEADTOOLS_FLOWERS-8-PAL-RLE.dcm
     // User specify PlanarConfiguration whereas SamplesPerPixel != 3
     gdcmWarningMacro(
@@ -159,6 +168,7 @@ void Bitmap::SetPlanarConfiguration(unsigned int pc)
       || ts == TransferSyntax::JPEG2000Lossless
       || ts == TransferSyntax::JPEG2000
       || ts == TransferSyntax::JPIPReferenced
+      || ts == TransferSyntax::RLELossless // FIXME internally GDCM produce per-pixel output
     )
       {
       // PS 3.6 - 2011 8.2.4 JPEG 2000 IMAGE COMPRESSION
@@ -328,7 +338,7 @@ bool Bitmap::TryRAWCodec(char *buffer, bool &lossyflag) const
     codec.SetLUT( GetLUT() );
     codec.SetPixelFormat( GetPixelFormat() );
     codec.SetNeedByteSwap( GetNeedByteSwap() );
-    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() );
+    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() || UnusedBitsPresentInPixelData() );
     DataElement out;
     //bool r = codec.Decode(PixelData, out);
     bool r = codec.DecodeBytes(bv->GetPointer(), bv->GetLength(),
@@ -396,6 +406,12 @@ bool Bitmap::TryJPEGCodec(char *buffer, bool &lossyflag) const
         i->SetPixelFormat( codec.GetPixelFormat() );
         }
 #endif
+      if( GetDimensions()[0] != codec.GetDimensions()[0]
+      || GetDimensions()[1] != codec.GetDimensions()[1] )
+{
+      gdcmWarningMacro( "dimension mismatch for JPEG" );
+	((Bitmap*)this)->SetDimensions( codec.GetDimensions() ); //JPEGNote_bogus.dcm
+}
 
       return true;
       }
@@ -410,7 +426,7 @@ bool Bitmap::TryJPEGCodec(char *buffer, bool &lossyflag) const
     codec.SetPlanarConfiguration( GetPlanarConfiguration() );
     codec.SetPhotometricInterpretation( GetPhotometricInterpretation() );
     codec.SetPixelFormat( GetPixelFormat() );
-    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() );
+    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() || UnusedBitsPresentInPixelData() );
     DataElement out;
     bool r = codec.Decode(PixelData, out);
     // PHILIPS_Gyroscan-12-MONO2-Jpeg_Lossless.dcm
@@ -486,7 +502,7 @@ bool Bitmap::TryJPEGCodec2(std::ostream &os) const
     codec.SetPlanarConfiguration( GetPlanarConfiguration() );
     codec.SetPhotometricInterpretation( GetPhotometricInterpretation() );
     codec.SetPixelFormat( GetPixelFormat() );
-    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() );
+    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() || UnusedBitsPresentInPixelData() );
     DataElement out;
     bool r = codec.Code(PixelData, out);
     // PHILIPS_Gyroscan-12-MONO2-Jpeg_Lossless.dcm
@@ -529,7 +545,7 @@ bool Bitmap::TryPVRGCodec(char *buffer, bool &lossyflag) const
     //codec.SetNumberOfDimensions( GetNumberOfDimensions() );
     codec.SetPlanarConfiguration( GetPlanarConfiguration() );
     codec.SetPhotometricInterpretation( GetPhotometricInterpretation() );
-    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() );
+    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() || UnusedBitsPresentInPixelData() );
     codec.SetDimensions( GetDimensions() );
     DataElement out;
     bool r = codec.Decode(PixelData, out);
@@ -569,7 +585,7 @@ bool Bitmap::TryKAKADUCodec(char *buffer, bool &lossyflag) const
     codec.SetNumberOfDimensions( GetNumberOfDimensions() );
     codec.SetPlanarConfiguration( GetPlanarConfiguration() );
     codec.SetPhotometricInterpretation( GetPhotometricInterpretation() );
-    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() );
+    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() || UnusedBitsPresentInPixelData() );
     codec.SetDimensions( GetDimensions() );
     DataElement out;
     bool r = codec.Decode(PixelData, out);
@@ -642,7 +658,7 @@ bool Bitmap::TryJPEGLSCodec(char *buffer, bool &lossyflag) const
     codec.SetNumberOfDimensions( GetNumberOfDimensions() );
     codec.SetPlanarConfiguration( GetPlanarConfiguration() );
     codec.SetPhotometricInterpretation( GetPhotometricInterpretation() );
-    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() );
+    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() || UnusedBitsPresentInPixelData() );
     codec.SetDimensions( GetDimensions() );
     DataElement out;
     bool r = codec.Decode(PixelData, out);
@@ -759,7 +775,7 @@ bool Bitmap::TryJPEG2000Codec(char *buffer, bool &lossyflag) const
     codec.SetNumberOfDimensions( GetNumberOfDimensions() );
     codec.SetPlanarConfiguration( GetPlanarConfiguration() );
     codec.SetPhotometricInterpretation( GetPhotometricInterpretation() );
-    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() );
+    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() || UnusedBitsPresentInPixelData() );
     codec.SetDimensions( GetDimensions() );
     DataElement out;
     bool r = codec.Decode(PixelData, out);
@@ -826,7 +842,7 @@ bool Bitmap::TryJPEG2000Codec2(std::ostream &os) const
     codec.SetNumberOfDimensions( GetNumberOfDimensions() );
     codec.SetPlanarConfiguration( GetPlanarConfiguration() );
     codec.SetPhotometricInterpretation( GetPhotometricInterpretation() );
-    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() );
+    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() || UnusedBitsPresentInPixelData() );
     DataElement out;
     bool r = codec.Code(PixelData, out);
     assert( r );
@@ -857,7 +873,7 @@ bool Bitmap::TryRLECodec(char *buffer, bool &lossyflag ) const
     codec.SetPhotometricInterpretation( GetPhotometricInterpretation() );
     codec.SetPixelFormat( GetPixelFormat() );
     codec.SetLUT( GetLUT() );
-    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() );
+    codec.SetNeedOverlayCleanup( AreOverlaysInPixelData() || UnusedBitsPresentInPixelData() );
     codec.SetBufferLength( len );
     DataElement out;
     bool r = codec.Decode(PixelData, out);

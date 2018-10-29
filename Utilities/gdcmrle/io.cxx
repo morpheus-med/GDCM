@@ -22,7 +22,7 @@ namespace rle
 
 // this function will read in len bytes so that out contains N pixel of
 // pixel_type pt spread into chunks.
-// Eg, for an RGB 8bits input, out will continas RRRRR ... GGGG .... BBBBB
+// Eg, for an RGB 8bits input, out will contains RRRRR ... GGGG .... BBBBB
 int source::read_into_segments( char * out, int len, image_info const & ii )
 {
   pixel_info pt = ii.get_pixel_info();
@@ -35,7 +35,7 @@ int source::read_into_segments( char * out, int len, image_info const & ii )
   if( numsegs == 1 )
     {
     const int nvalues = read(out, len);
-    assert( nvalues == len );
+    assert( nvalues == len ); (void)nvalues;
     }
   else
     {
@@ -55,7 +55,7 @@ int source::read_into_segments( char * out, int len, image_info const & ii )
       for(int l = 0; l < llen; ++l )
         {
         const int nvalues = read(values, numsegs);
-        assert( nvalues == numsegs );
+        assert( nvalues == numsegs ); (void)nvalues;
         for( int c = 0; c < nc; ++c )
           {
           for( int p = 0; p < npadded; ++p )
@@ -69,9 +69,30 @@ int source::read_into_segments( char * out, int len, image_info const & ii )
       }
     else
       {
-      assert( 0 ); // not implemented
-      //throw std::invalid_argument(" not implemented" );
-      return -1;
+      if( numsegs == 3 )
+        {
+        const int llen = len / numsegs;
+        assert( ii.get_width()  == llen );
+        size_t plane = (size_t)ii.get_width() * (size_t)ii.get_height() * 1;
+        streampos_t pos = tell();
+        int nvalues = read(out + 0 * llen, llen);
+        assert( nvalues == llen ); (void)nvalues;
+        bool b = seek(pos + 1 * plane);
+        assert(b);
+        nvalues = read(out + 1 * llen, llen);
+        assert( nvalues == llen ); (void)nvalues;
+        b = seek(pos + 2 * plane);
+        assert(b);
+        nvalues = read(out + 2 * llen, llen);
+        assert( nvalues == llen ); (void)nvalues;
+        b = seek(pos + llen);
+        assert(b);
+        }
+      else
+        {
+        //throw std::invalid_argument(" not implemented" );
+        return -1;
+        }
       }
     }
   return len;

@@ -29,10 +29,16 @@ namespace gdcm
  */
 /**
  * \brief SplitMosaicFilter class
- * Class to reshuffle bytes for a SIEMENS Mosaic image
+ * \details Class to reshuffle bytes for a SIEMENS Mosaic image
  * Siemens CSA Image Header
  * CSA:= Common Siemens Architecture, sometimes also known as Common syngo Architecture
  *
+ * \warning when private attributes are not found, the acquisition matrix is
+ * used to compute the NumberOfImagesInMosaic. This means trailing black slices
+ * will be considered in the volume (instead of discarded).
+ * CSA 0029,1010 is needed for correct NumberOfImagesInMosaic
+ * CSA 0029,1020 is needed to compute the correct origin
+ * without above info default are taken (may not be accurate).
  */
 class GDCM_EXPORT SplitMosaicFilter
 {
@@ -47,6 +53,12 @@ public:
   /// stored in the MOSAIC header.
   bool ComputeMOSAICDimensions(unsigned int dims[3]);
 
+  /// Extract the value for SliceNormalVector (CSA header)
+  bool ComputeMOSAICSliceNormal( double dims[3], bool & inverted );
+
+  /// Extract the value for ImagePositionPatient (requires inverted flag)
+  bool ComputeMOSAICSlicePosition( double pos[3], bool inverted );
+
   void SetImage(const Image& image);
   const Image &GetImage() const { return *I; }
   Image &GetImage() { return *I; }
@@ -54,6 +66,12 @@ public:
   void SetFile(const File& f) { F = f; }
   File &GetFile() { return *F; }
   const File &GetFile() const { return *F; }
+
+  /// Get the Acquisition Matrix (non zero value):
+  static bool GetAcquisitionSize(unsigned int size[2], DataSet const & ds);
+
+  /// Return the value for NumberOfImagesInMosaic, or compute it from Acquisition Size
+  static unsigned int GetNumberOfImagesInMosaic( File const & file );
 
 protected:
 

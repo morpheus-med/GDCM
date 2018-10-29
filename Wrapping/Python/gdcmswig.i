@@ -70,6 +70,7 @@
 #include "gdcmBasicOffsetTable.h"
 //#include "gdcmLO.h"
 #include "gdcmCSAElement.h"
+#include "gdcmMrProtocol.h"
 #include "gdcmPDBElement.h"
 #include "gdcmFileSet.h"
 
@@ -194,6 +195,7 @@
 #include "gdcmImageRegionReader.h"
 #include "gdcmJSON.h"
 #include "gdcmFileDecompressLookupTable.h"
+#include "gdcmEmptyMaskGenerator.h"
 
 using namespace gdcm;
 %}
@@ -326,7 +328,24 @@ EXTEND_CLASS_PRINT(gdcm::ByteValue)
 %include "gdcmSmartPointer.h"
 %template(SmartPtrSQ) gdcm::SmartPointer<gdcm::SequenceOfItems>;
 %template(SmartPtrFrag) gdcm::SmartPointer<gdcm::SequenceOfFragments>;
+%typemap(in) (const char* array, uint32_t length) {
+  $1 = PyString_AsString($input);
+  if ($1 == NULL) {
+    SWIG_exception_fail(SWIG_ArgError(SWIG_TypeError), "in method '$symname', argument $argnum expected byte string.");
+  }
+  Py_ssize_t length = PyString_Size($input);
+  if (static_cast<size_t>(length) > std::numeric_limits<uint32_t>::max()) {
+    SWIG_exception_fail(SWIG_ArgError(SWIG_OverflowError), "in method '$symname', array in argument $argnum is too large.");
+  }
+  $2 = static_cast<uint32_t>(length);
+}
 %include "gdcmDataElement.h"
+%extend gdcm::DataElement
+{
+    void SetByteStringValue(const char *array, uint32_t length) {
+        self->SetByteValue(array, gdcm::VL(length));
+    }
+}
 EXTEND_CLASS_PRINT(gdcm::DataElement)
 %include "gdcmItem.h"
 EXTEND_CLASS_PRINT(gdcm::Item)
@@ -437,14 +456,22 @@ EXTEND_CLASS_PRINT(gdcm::Image)
 %include "gdcmFragment.h"
 EXTEND_CLASS_PRINT(gdcm::Fragment)
 // convert SWIGTYPE_p_std__vectorT_gdcm__Fragment_t__size_type
-//%template() std::vector< gdcm::Fragment >;
+%template(fragmentVector) std::vector< gdcm::Fragment >;
 // -> error: ‘type_name’ is not a member of ‘swig::traits<gdcm::Fragment>’ (swig 3.0.7)
 %include "gdcmPDBElement.h"
 EXTEND_CLASS_PRINT(gdcm::PDBElement)
 %include "gdcmPDBHeader.h"
 EXTEND_CLASS_PRINT(gdcm::PDBHeader)
+%include "gdcmMrProtocol.h"
+EXTEND_CLASS_PRINT(gdcm::MrProtocol)
 %include "gdcmCSAElement.h"
 EXTEND_CLASS_PRINT(gdcm::CSAElement)
+%extend gdcm::CSAElement
+{
+    void SetByteStringValue(const char *array, uint32_t length) {
+        self->SetByteValue(array, gdcm::VL(length));
+    }
+}
 %include "gdcmCSAHeader.h"
 EXTEND_CLASS_PRINT(gdcm::CSAHeader)
 %include "gdcmSequenceOfFragments.h"
@@ -796,3 +823,4 @@ EXTEND_CLASS_PRINT(gdcm::BoxRegion)
 %clear char* inreadbuffer;
 %include "gdcmJSON.h"
 %include "gdcmFileDecompressLookupTable.h"
+%include "gdcmEmptyMaskGenerator.h"

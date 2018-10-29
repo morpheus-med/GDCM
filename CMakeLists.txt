@@ -1,14 +1,26 @@
 cmake_minimum_required(VERSION 2.8.7)
 if(POLICY CMP0022)
-  cmake_policy(SET CMP0022 OLD)
+  cmake_policy(SET CMP0022 NEW)
 endif()
 if(POLICY CMP0025)
   cmake_policy(SET CMP0025 NEW)
 endif()
+if(POLICY CMP0026)
+  cmake_policy(SET CMP0026 NEW)
+endif()
 if(POLICY CMP0042)
   cmake_policy(SET CMP0042 NEW)
 endif()
+if( POLICY CMP0063 )
+  cmake_policy(SET CMP0063 NEW)
+endif()
+if( POLICY CMP0074 )
+  cmake_policy(SET CMP0074 NEW)
+endif()
 project(GDCM)
+# Use c++11 features for nlohmann:json suport
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_EXTENSIONS OFF)
 mark_as_advanced(CMAKE_BACKWARDS_COMPATIBILITY CMAKE_BUILD_TYPE CMAKE_INSTALL_PREFIX)
 set(GDCM_CMAKE_DIR "${GDCM_SOURCE_DIR}/CMake" CACHE INTERNAL "")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${GDCM_CMAKE_DIR}")
@@ -31,8 +43,8 @@ set(GDCM_PACKAGE_CONTACT "GDCM Developers <gdcm-developers@lists.sourceforge.net
 
 #----------------------------------------------------------------------------
 set(GDCM_MAJOR_VERSION 2)
-set(GDCM_MINOR_VERSION 7)
-set(GDCM_BUILD_VERSION 0)
+set(GDCM_MINOR_VERSION 8)
+set(GDCM_BUILD_VERSION 8)
 set(GDCM_VERSION
   "${GDCM_MAJOR_VERSION}.${GDCM_MINOR_VERSION}.${GDCM_BUILD_VERSION}")
 # let advanced user the option to define GDCM_API_VERSION:
@@ -89,9 +101,6 @@ if(GDCM_MINOR_VERSION MATCHES "[02468]$")
 else()
   set(GDCM_BUILD_TESTING_DEFAULT ON)
 endif()
-
-# Use c++11 features for nlohmann:json suport
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 #-----------------------------------------------------------------------------
 # Disable deprecation warnings for standard C and STL functions in VS2005
@@ -367,15 +376,10 @@ else()
 endif()
 
 if(GDCM_USE_SYSTEM_OPENJPEG)
-  # For some reason I cannot specify the version I want.
-  # find_package(OpenJPEG 2.0 REQUIRED)
-  # oh well we should handle both 1.0 and 2.0 anyway...
-  find_package(OpenJPEG REQUIRED)
+  find_package(OpenJPEG 2.0.0 REQUIRED)
   set(GDCM_OPENJPEG_LIBRARIES ${OPENJPEG_LIBRARIES})
 else()
-  set(GDCM_OPENJPEG_LIBRARIES gdcmopenjpeg)
-  option(GDCM_USE_OPENJPEG_V2 "Use openjpeg v2 version (advanced users only)." OFF)
-  mark_as_advanced(GDCM_USE_OPENJPEG_V2)
+  set(GDCM_OPENJPEG_LIBRARIES gdcmopenjp2)
 endif()
 
 # Very advanced user option:
@@ -412,6 +416,7 @@ endif()
 if(GDCM_USE_SYSTEM_ZLIB)
   # If user say so, then this is a requirement !
   find_package(ZLIB REQUIRED)
+  include_directories(${ZLIB_INCLUDE_DIR})
   set(GDCM_ZLIB_LIBRARIES ${ZLIB_LIBRARIES})
 else()
   set(GDCM_ZLIB_LIBRARIES "gdcmzlib")
@@ -521,8 +526,8 @@ if(GDCM_STANDALONE)
   option(GDCM_WRAP_PHP "build php wrapping" OFF)
   option(GDCM_WRAP_JAVA "build java wrapping" OFF)
   option(GDCM_WRAP_CSHARP "build csharp wrapping" OFF)
+  mark_as_advanced(GDCM_WRAP_PHP)
   mark_as_advanced(GDCM_WRAP_PERL)
-  mark_as_advanced(GDCM_USE_RLE)
   mark_as_advanced(GDCM_USE_ACTIVIZ)
   option(GDCM_USE_JPEGLS "Build GDCM with JPEG-LS support" ON)
   mark_as_advanced(GDCM_USE_JPEGLS)
@@ -539,6 +544,23 @@ if(GDCM_STANDALONE)
     find_package(CSharp REQUIRED)
     include(${CSharp_USE_FILE})
   endif()
+  # Expose a way to pass -fPIC to static libs of gdcm core, while still build wrapped language as shared lib:
+  if(NOT DEFINED GDCM_USE_PIC_FOR_STATIC_LIBS)
+    if(GDCM_WRAP_JAVA)
+      if(NOT BUILD_SHARED_LIBS)
+        if(CMAKE_COMPILER_IS_GNUCXX)
+          set(GDCM_USE_PIC_FOR_STATIC_LIBS ON)
+        endif()
+      endif()
+    endif()
+  endif()
+  if(GDCM_USE_PIC_FOR_STATIC_LIBS)
+    if(BUILD_SHARED_LIBS)
+      message(FATAL_ERROR "Invalid configuration for static/shared lib")
+    else()
+      set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    endif()
+  endif()
 endif()
 
 set(GDCM_LIBRARY_DIR ${LIBRARY_OUTPUT_PATH}/${CMAKE_CFG_INTDIR})
@@ -547,7 +569,10 @@ set(GDCM_EXECUTABLE_DIR ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR})
 #-----------------------------------------------------------------------------
 # we need to link against CoreFoundation so that we can use CFBundle to get the executable path.
 if(APPLE)
-  find_library(COREFOUNDATION_LIBRARY CoreFoundation )
+  option(GDCM_USE_COREFOUNDATION_LIBRARY "Use COREFOUNDATION_LIBRARY?" ON)
+  if(GDCM_USE_COREFOUNDATION_LIBRARY)
+    find_library(COREFOUNDATION_LIBRARY CoreFoundation )
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------
@@ -573,6 +598,11 @@ endif()
 
 # Need to subdirs in Source/Common before Wrapping
 # to have gdcmConfigure.h around
+if(GDCM_STANDALONE)
+  set(BUILD_APPLICATIONS ${GDCM_BUILD_APPLICATIONS})
+else()
+  set(BUILD_APPLICATIONS OFF)
+endif()
 subdirs(Utilities)
 add_subdirectory(Source)
 
@@ -613,7 +643,7 @@ CHECK_INCLUDE_FILE("pthread.h"      GDCM_HAVE_PTHREAD_H)
 
 # Big endian thing:
 if(GDCM_STANDALONE)
-  include(${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
+  include(TestBigEndian)
   TEST_BIG_ENDIAN(GDCM_WORDS_BIGENDIAN)
 endif()
 
@@ -660,12 +690,6 @@ if(GDCM_STANDALONE)
     mark_as_advanced(GDCM_USE_PARAVIEW)
     subdirs(Utilities/VTK)
   endif()
-endif()
-#-----------------------------------------------------------------------------
-option(GDCM_USE_WXWIDGETS "wxWidgets bridge ?" OFF)
-mark_as_advanced(GDCM_USE_WXWIDGETS)
-if(GDCM_USE_WXWIDGETS)
-  subdirs(Utilities/wxWidgets)
 endif()
 
 #-----------------------------------------------------------------------------
