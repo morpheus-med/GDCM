@@ -41,10 +41,13 @@ namespace {
   void hash_sha256(const std::string& input, unsigned char* output, unsigned int output_size) {
     EVP_MD_CTX* context = EVP_MD_CTX_create();
     const EVP_MD* digest = EVP_sha256();
+
     EVP_DigestInit_ex(context, digest, NULL);
     EVP_DigestUpdate(context, input.c_str(), input.length());
+
     unsigned char hash[EVP_MAX_MD_SIZE];
     unsigned int hash_size = 0;
+
     EVP_DigestFinal_ex(context, hash, &hash_size);
     EVP_MD_CTX_destroy(context);
     memcpy(output, hash, std::min(output_size, hash_size));
