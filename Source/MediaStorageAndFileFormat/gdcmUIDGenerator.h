@@ -64,7 +64,7 @@ public:
   /// const char *uid2 = uid.Generate();
   /// since uid1 == uid2
   const char* Generate();
-  std::string generate_x667(const std::string& oid);
+  std::string map_oid_x667(const std::string& oid);
 
   /// Find out if the string is a valid UID or not
   /// \todo: Move that in DataStructureAndEncoding (see FileMetaInformation::CheckFileMetaInformation)

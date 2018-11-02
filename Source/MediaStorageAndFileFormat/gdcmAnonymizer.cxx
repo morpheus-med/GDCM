@@ -1132,7 +1132,7 @@ bool Anonymizer::BALCPProtect(DataSet &ds, Tag const & tag, IOD const & iod)
         {
         if ( dummyMapUIDTags.count( UIDToAnonymize ) == 0 )
           {
-          anonymizedUID = uid.generate_x667(UIDToAnonymize);
+          anonymizedUID = uid.map_oid_x667(UIDToAnonymize);
           dummyMapUIDTags[ UIDToAnonymize ] = anonymizedUID;
           }
         else

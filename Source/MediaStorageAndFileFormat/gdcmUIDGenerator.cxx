@@ -117,7 +117,7 @@ http://dicom.nema.org/Dicom/2013/output/chtml/part05/sect_B.2.html
 https://tools.ietf.org/html/rfc4122#section-4.3
 https://www.itu.int/ITU-T/studygroups/com17/oid/X.667-E.pdf
 */
-std::string UIDGenerator::generate_x667(const std::string& oid)
+std::string UIDGenerator::map_oid_x667(const std::string& oid)
 {
   const std::string oid_namespace("6ba7b812-9dad-11d1-80b4-00c04fd430c8");
   const std::string root("2.25.");
