@@ -325,10 +325,6 @@ Anonymizer::~Anonymizer()
 {
 }
 
-void Anonymizer::set_uid_salt(const std::string& uid_salt) {
-  this->uid_salt = uid_salt;
-}
-
 bool Anonymizer::Empty( Tag const &t)
 {
   // There is a secret code path to make it work for VR::SQ since operation is just 'make empty'
@@ -1136,7 +1132,7 @@ bool Anonymizer::BALCPProtect(DataSet &ds, Tag const & tag, IOD const & iod)
         {
         if ( dummyMapUIDTags.count( UIDToAnonymize ) == 0 )
           {
-          anonymizedUID = uid.Generate(UIDToAnonymize + uid_salt);
+          anonymizedUID = uid.generate_x667(UIDToAnonymize);
           dummyMapUIDTags[ UIDToAnonymize ] = anonymizedUID;
           }
         else
