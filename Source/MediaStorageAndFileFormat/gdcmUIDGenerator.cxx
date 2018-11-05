@@ -33,14 +33,13 @@
 #include <rpc.h>
 #endif
 
-#include <iostream>
 #include <openssl/evp.h>
 #include <algorithm>
 
 namespace {
-  void hash_sha256(const std::string& input, unsigned char* output, unsigned int output_size) {
+  void hash_sha1(const std::string& input, unsigned char* output, unsigned int output_size) {
     EVP_MD_CTX* context = EVP_MD_CTX_create();
-    const EVP_MD* digest = EVP_sha256();
+    const EVP_MD* digest = EVP_sha1();
 
     EVP_DigestInit_ex(context, digest, NULL);
     EVP_DigestUpdate(context, input.c_str(), input.length());
@@ -112,9 +111,30 @@ struct fnv_hash
     }
 };
 
-const char* UIDGenerator::Generate()
+/*
+Generates a UID according to ISO/IEC 9834-8 / ITU-T X.667 / RFC4122
+http://dicom.nema.org/Dicom/2013/output/chtml/part05/sect_B.2.html
+https://tools.ietf.org/html/rfc4122#section-4.3
+https://www.itu.int/ITU-T/studygroups/com17/oid/X.667-E.pdf
+*/
+std::string UIDGenerator::map_oid_x667(const std::string& oid)
 {
-  Generate("");
+  const std::string oid_namespace("6ba7b812-9dad-11d1-80b4-00c04fd430c8");
+  const std::string root("2.25.");
+  unsigned char uuid[16];
+
+  hash_sha1(oid_namespace + oid, uuid, sizeof(uuid));
+  // UUID Type 5
+  uuid[6] &= 0x0F;
+  uuid[6] |= 0x50;
+  uuid[8] &= 0x3F;
+  uuid[8] |= 0x80;
+
+  // at most 39 decimal digits + null byte for 128 bits
+  char decimal_encoded[40];
+  size_t length = System::EncodeBytes(decimal_encoded, uuid, sizeof(uuid));
+  assert(length < 40);
+  return root + decimal_encoded;
 }
 
 /*
@@ -122,7 +142,7 @@ Implementation note: You cannot set a root of more than 26 bytes (which should a
 enough for most people).
 Since implementation is only playing with the first 8bits of the upper
 */
-const char* UIDGenerator::Generate(const std::string& source)
+const char* UIDGenerator::Generate()
 {
   Unique = GetRoot();
   // We choose here a value of 26 so that we can still have 37 bytes free to
@@ -133,12 +153,7 @@ const char* UIDGenerator::Generate(const std::string& source)
     return NULL;
     }
   unsigned char uuid[16];
-  bool r = true;
-  if(source.empty()){
-    r = UIDGenerator::GenerateUUID(uuid);
-  } else {
-    hash_sha256(source, uuid, sizeof(uuid));
-  }
+  bool r = UIDGenerator::GenerateUUID(uuid);
   // This should only happen in some obscure cases. Since the creation of UUID failed
   // I should try to go any further and make sure the user's computer crash and burn
   // right away

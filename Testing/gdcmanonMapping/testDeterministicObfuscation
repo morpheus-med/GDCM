@@ -8,7 +8,7 @@ declare DEFAULT="\e[39m"
 function compare() {
     declare title="$1"
     declare actual="$2"
-    declare root=1.2.826.0.1.3680043.2.1143.
+    declare root=2.25.
     declare expected="${root}$3"
     echo -e "${CYAN}${title}${DEFAULT}"
     if [[ $actual = $expected ]]; then
@@ -64,18 +64,11 @@ declare failed=0
 declare out=out.dcm
 
 gdcmanon -i ${file} -o ${out} -c dummy-cert.cer
-verify_media_storage_sop_instance_uid 4434565882582859168137646841675113333
-verify_sop_instance_uid 4434565882582859168137646841675113333
-verify_study_instance_uid 1889324853031396736868670048376382617
-verify_series_instance_uid 6594885858468745873541256619856482776
-verify_frame_of_reference_uid 7761788849842119511010082634611883900
-
-gdcmanon -i ${file} -o ${out} -c dummy-cert.cer -s 123
-verify_media_storage_sop_instance_uid 81550157267779450546128385869695219
-verify_sop_instance_uid 81550157267779450546128385869695219
-verify_study_instance_uid 1529365627626981896342249796865187816
-verify_series_instance_uid 8740890144781442914573725112811246252
-verify_frame_of_reference_uid 5481699032466062340475484126937460718
+verify_media_storage_sop_instance_uid 67853465656486509836044414130127674991
+verify_sop_instance_uid 67853465656486509836044414130127674991
+verify_study_instance_uid 332727874506492441949635753637643565296
+verify_series_instance_uid 227474913195701685931351941259382086518
+verify_frame_of_reference_uid 42081261005830073329032663122232811329
 
 rm ${out}
 declare result="TOTAL PASSED: ${passed} FAILED: ${failed}"
