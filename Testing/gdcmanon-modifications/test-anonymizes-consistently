@@ -1,0 +1,16 @@
+#!/bin/bash
+
+source ./test-helpers.sh
+
+function get_md5() {
+    md5sum "$1" | cut -d " " -f1
+}
+
+declare file="${1:-single-dicom.dcm}"
+declare out=out.dcm
+
+gdcmanon -i ${file} -o ${out} -c dummy-cert.cer
+compare_val "MD5" "$(get_md5 ${out})" "cd6278b8d422e80e808eead3308baaeb"
+
+rm ${out}
+verify_results
