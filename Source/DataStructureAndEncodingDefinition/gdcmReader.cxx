@@ -41,6 +41,8 @@ Reader::Reader():F(new File)
 {
   Stream = NULL;
   Ifstream = NULL;
+  buffered_stream = NULL;
+  seek_buffer = NULL;
 }
 
 Reader::~Reader()
