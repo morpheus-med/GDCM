@@ -17,6 +17,7 @@
 #include "gdcmFile.h"
 
 #include <fstream>
+class bufferbuf;
 
 namespace gdcm_ns
 {
@@ -120,6 +121,8 @@ private:
   TransferSyntax GuessTransferSyntax();
   std::istream *Stream;
   std::ifstream *Ifstream;
+  bufferbuf* seek_buffer;
+  std::istream* buffered_stream;
 };
 
 /**

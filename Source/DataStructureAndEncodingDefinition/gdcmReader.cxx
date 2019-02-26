@@ -23,6 +23,8 @@
 #include "gdcmExplicitDataElement.h"
 #include "gdcmImplicitDataElement.h"
 
+#include <bufferbuf.h>
+
 #ifdef GDCM_SUPPORT_BROKEN_IMPLEMENTATION
 #include "gdcmUNExplicitDataElement.h"
 #include "gdcmCP246ExplicitDataElement.h"
@@ -46,6 +48,8 @@ Reader::~Reader()
   if (Ifstream)
     {
     Ifstream->close();
+    delete buffered_stream;
+    delete seek_buffer;
     delete Ifstream;
     Ifstream = NULL;
     Stream = NULL;
@@ -825,16 +829,26 @@ bool Reader::CanRead() const
 
 void Reader::SetFileName(const char *filename)
 {
-  if(Ifstream) delete Ifstream;
+  if(Ifstream) {
+    delete buffered_stream;
+    delete seek_buffer;
+    delete Ifstream;
+  }
   Ifstream = new std::ifstream();
   Ifstream->open(filename, std::ios::binary);
   if( Ifstream->is_open() )
     {
-    Stream = Ifstream;
+    seek_buffer = new bufferbuf(Ifstream->rdbuf());
+    buffered_stream = new std::istream(seek_buffer);
+    Stream = buffered_stream;
     assert( Stream && *Stream );
     }
   else
     {
+    delete buffered_stream;
+    buffered_stream = NULL;
+    delete seek_buffer;
+    seek_buffer = NULL;
     delete Ifstream;
     Ifstream = NULL;
     Stream = NULL;
