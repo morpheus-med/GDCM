@@ -21,7 +21,11 @@ rm ${out}
 compare_val "MD5 original" "$(get_md5 ${out})" "69dc8ec827208087dc1ef850464476a0"
 rm ${out}
 
-./read-to-stdout ${file} | gdcmanon -i /dev/stdin -o /dev/stdout -c dummy-cert.cer > ${out}
+./read-to-stdout ${file} | gdcmanon -i stdin -o stdout -c dummy-cert.cer > ${out}
+compare_md5
+rm ${out}
+
+./child-anon ${file} ${out}
 compare_md5
 rm ${out}
 

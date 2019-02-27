@@ -29,6 +29,7 @@
 #include "gdcmDefs.h"
 #include "gdcmDirectory.h"
 #include "json.hpp"
+#include "fixed_istream_buffer.h"
 
 #include <getopt.h>
 
@@ -114,7 +115,16 @@ static bool AnonymizeOneFileDumb(gdcm::Anonymizer &anon, const char *filename, c
 static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const char *outfilename, bool continuemode = false)
 {
   gdcm::Reader reader;
-  reader.SetFileName( filename );
+  std::unique_ptr<fixed_istream_buffer> seek_buffer;
+  std::unique_ptr<std::istream> buffered_stream;
+
+  if(strcmp(filename, "stdin") == 0) {
+    seek_buffer.reset(new fixed_istream_buffer(std::cin, 512));
+    buffered_stream.reset(new std::istream(seek_buffer.get()));
+    reader.SetStream(*buffered_stream);
+  } else {
+    reader.SetFileName(filename);
+  }
   if( !reader.Read() )
     {
     std::cerr << "Could not read : " << filename << std::endl;
@@ -164,7 +174,11 @@ static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const
   fmi.Clear();
 
   gdcm::Writer writer;
-  writer.SetFileName( outfilename );
+  if (strcmp(outfilename, "stdout") == 0) {
+    writer.SetStream(std::cout);
+  } else {
+    writer.SetFileName(outfilename);
+  }
   writer.SetFile( file );
   if( !writer.Write() )
     {
@@ -216,8 +230,8 @@ static void PrintHelp()
   std::cout << "  -d --re-identify (decrypt)  Re-identify DICOM" << std::endl;
   std::cout << "     --dumb                   Dumb mode anonymizer" << std::endl;
   std::cout << "Options:" << std::endl;
-  std::cout << "  -i --input                  DICOM filename / directory" << std::endl;
-  std::cout << "  -o --output                 DICOM filename / directory" << std::endl;
+  std::cout << "  -i --input                  DICOM filename / directory / stdin for standard input" << std::endl;
+  std::cout << "  -o --output                 DICOM filename / directory / stdout for standard output" << std::endl;
   std::cout << "  -j --json                   Output de-identified data to json" << std::endl;
   std::cout << "  -r --recursive              recursively process (sub-)directories." << std::endl;
   std::cout << "     --continue               Do not stop when file found is not DICOM." << std::endl;
@@ -656,7 +670,7 @@ int main(int argc, char *argv[])
       }
     }
 
-  if( !gdcm::System::FileExists(filename.c_str()) )
+  if( filename.compare("stdin") != 0 && !gdcm::System::FileExists(filename.c_str()) )
     {
     std::cerr << "Could not find file: " << filename << std::endl;
     return 1;

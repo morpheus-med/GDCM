@@ -1,0 +1,31 @@
+#!/usr/bin/env node
+
+const child_process = require('child_process');
+const fs = require('fs');
+
+const anon = child_process.spawn('gdcmanon', ['-c', 'dummy-cert.cer', '-i', 'stdin', '-o', 'stdout']);
+
+anon.stdout.setDefaultEncoding('binary');
+const dicom_out = fs.openSync(process.argv[3], 'w');
+anon.stdout.on('data', (data) => {
+   fs.appendFileSync(dicom_out, data);
+});
+anon.stdout.on('end', () => {
+   fs.closeSync(dicom_out);
+});
+anon.stderr.on('data', (data) => {
+   console.log(`anon stderr: ${data}`);
+});
+
+anon.stdin.setEncoding('binary');
+anon.stdin.on('error', (error) => { console.log(`stdin stream error: ${error}`); });
+
+const dicom_in = fs.createReadStream(process.argv[2]);
+dicom_in.on('data', (data) => {
+   anon.stdin.write(data, (err) => {
+      if(err) { console.log(`write error: ${err}`); }
+   });
+});
+dicom_in.on('end', () => {
+   anon.stdin.end();
+});
