@@ -6,6 +6,7 @@
 /**
  gdcmReader does seeking when decoding the headers so we need to buffer the input stream
  can seek back at least half the buffer size, fails when seeking outside of the buffer
+ may make a blocking read on construction
  based on https://stackoverflow.com/questions/44711735/someway-to-buffer-or-wrap-cin-so-i-can-use-tellg-seekg
 */
 class fixed_istream_buffer : public std::streambuf {
@@ -24,35 +25,52 @@ public:
 
     int underflow() override {
         if (gptr() == buffer.data() + size) {
-            std::memmove(eback(), eback() + half, half);
+            char* half_buffer = eback() + half;
+            std::memmove(eback(), half_buffer, half);
+            std::streamsize read = stream.read(half_buffer, half).gcount();
+            setg(eback(), half_buffer, half_buffer + read);
             base += half;
-            std::streamsize read = stream.read(eback() + half, half).gcount();
-            setg(eback(), eback() + half, eback() + half + read);
         }
-        return gptr() != egptr()
-            ? traits_type::to_int_type(*gptr())
-            : traits_type::eof();
+        return has_reached_end() ? traits_type::eof() : traits_type::to_int_type(*gptr());
     }
 
-    // this could support limited std::ios_base::beg
     std::streampos seekoff(off_type offset, std::ios_base::seekdir way, std::ios_base::openmode which) override {
-        if (gptr() - eback() < -offset
-            || egptr() - gptr() < offset
-            || way != std::ios_base::cur
-            || !(which & std::ios_base::in)) {
-            return pos_type(off_type(-1));
+        if(which & std::ios_base::in) {
+            if(way == std::ios_base::cur && buffer_size_read() > -offset && buffer_size_unread() > offset) {
+                gbump(offset);
+                return pos_type(base + buffer_size_read());
+            } else if (way == std::ios_base::beg) {
+                return seekpos(pos_type(offset), which);
+            }
         }
-        gbump(offset);
-        return pos_type(base + (gptr() - eback()));
+        return invalid_position();
     }
 
     std::streampos seekpos(pos_type pos, std::ios_base::openmode which) override {
-        if (off_type(pos) < base
-            || base + (egptr() - eback()) < off_type(pos)
-            || !(which & std::ios_base::in)) {
-           return pos_type(off_type(-1));
+        if(which & std::ios_base::in && base < off_type(pos) && base + buffer_size_seekable() > off_type(pos)) {
+            setg(eback(), eback() + (off_type(pos) - base), egptr());
+            return pos_type(base + buffer_size_read());
         }
-        setg(eback(), eback() + (off_type(pos) - base), egptr());
-        return pos_type(base + (gptr() - eback()));
+        return invalid_position();
+    }
+
+    bool has_reached_end() {
+        return gptr() == egptr();
+    }
+
+    off_type buffer_size_read() {
+        return off_type(gptr() - eback());
+    }
+
+    off_type buffer_size_unread() {
+        return off_type(egptr() - gptr());
+    }
+
+    off_type buffer_size_seekable() {
+        return off_type(egptr() - eback());
+    }
+
+    std::streampos invalid_position() {
+        return pos_type(off_type(-1));
     }
 };

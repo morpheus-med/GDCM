@@ -25,7 +25,7 @@ rm ${out}
 compare_md5
 rm ${out}
 
-./child-anon ${file} ${out}
+./stream-anon-child ${file} ${out}
 compare_md5
 rm ${out}
 
