@@ -35,11 +35,13 @@ public:
     }
 
     std::streampos seekoff(off_type offset, std::ios_base::seekdir way, std::ios_base::openmode which) override {
-        if(which & std::ios_base::in) {
-            if(way == std::ios_base::cur && buffer_size_read() > -offset && buffer_size_unread() > offset) {
+        if(input_sequence(which)) {
+            bool after_beginning = buffer_size_read() > -offset;
+            bool before_end = buffer_size_unread() > offset;
+            if(way == std::ios_base::cur && after_beginning && before_end) {
                 gbump(offset);
                 return pos_type(base + buffer_size_read());
-            } else if (way == std::ios_base::beg) {
+            } else if (way == std::ios_base::beg && offset >= 0) {
                 return seekpos(pos_type(offset), which);
             }
         }
@@ -47,11 +49,17 @@ public:
     }
 
     std::streampos seekpos(pos_type pos, std::ios_base::openmode which) override {
-        if(which & std::ios_base::in && base < off_type(pos) && base + buffer_size_seekable() > off_type(pos)) {
+        bool after_beginning = base < off_type(pos);
+        bool before_end = base + buffer_size_seekable() > off_type(pos);
+        if(input_sequence(which) && after_beginning && before_end) {
             setg(eback(), eback() + (off_type(pos) - base), egptr());
             return pos_type(base + buffer_size_read());
         }
         return invalid_position();
+    }
+
+    bool input_sequence(std::ios_base::openmode which) {
+        return which & std::ios_base::in;
     }
 
     bool has_reached_end() {
