@@ -4,17 +4,19 @@
 #include <istream>
 
 /**
- gdcmReader does seeking when decoding the headers so we need to buffer the input stream
- can seek back at least half the buffer size, fails when seeking outside of the buffer
- may make a blocking read on construction
- based on https://stackoverflow.com/questions/44711735/someway-to-buffer-or-wrap-cin-so-i-can-use-tellg-seekg
+ The gdcmReader does seeking when decoding the headers so we need to buffer the input stream.
+ You can seek back at least half the buffer size and at most the full buffer size depending on the sequence position.
+ You may not be able to seek forward but can seek forward at most half the buffer size depending on the sequence position.
+ Seeking will fail if the result is outside of the current buffer.
+ This class performs a read on construction and so may block depending on the kind of istream used.
+ This is based on https://stackoverflow.com/questions/44711735/someway-to-buffer-or-wrap-cin-so-i-can-use-tellg-seekg
 */
 class fixed_istream_buffer : public std::streambuf {
     std::istream& stream;
     const unsigned size;
     const unsigned half;
     std::vector<char> buffer;
-    std::streamoff base;
+    std::streamoff base; //corresponds to the position of eback relative to the beginning of the input stream
 
 public:
     fixed_istream_buffer(std::istream& stream, unsigned size)
