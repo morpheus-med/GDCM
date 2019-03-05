@@ -5,3 +5,5 @@ services:
       context: .
     volumes:
       - ./:/build/GDCM
+    cap_add:
+      - SYS_PTRACE

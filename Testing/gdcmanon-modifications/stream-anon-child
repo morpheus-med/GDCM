@@ -7,7 +7,7 @@ const dicom_in = fs.createReadStream(process.argv[2]);
 const dicom_out = fs.createWriteStream(process.argv[3]);
 const anon = child_process.spawn('gdcmanon', ['-c', 'dummy-cert.cer', '-i', 'stdin', '-o', 'stdout']);
 
-anon.stderr.on('data', (data) => { console.log(`anon stderr: ${data}`); });
+anon.stderr.on('data', (data) => { console.log(`anon stderr:\n${data}`); });
 
 anon.stdout.setDefaultEncoding('binary');
 anon.stdout.pipe(dicom_out);

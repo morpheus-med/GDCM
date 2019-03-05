@@ -12,7 +12,8 @@ RUN set -x && \
     file \
     bash \
     vim \
-    nodejs
+    nodejs \
+    gdb
 
 WORKDIR /build/GDCM/
 
