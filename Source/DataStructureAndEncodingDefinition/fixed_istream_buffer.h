@@ -2,6 +2,7 @@
 #include <cstring>
 #include <vector>
 #include <istream>
+#include <algorithm>
 
 /**
  The gdcmReader does seeking when decoding the headers so we need to buffer the input stream.
@@ -79,23 +80,32 @@ public:
     // in the usual case this will not be called
     // assumes seekpos is past the end of the current buffer
     std::streampos seek_position_forward_via_read(std::streampos seekpos) {
-        std::streampos endpos = base + buffer_size_seekable() - 1;
+        std::streampos endpos = std::max(base + buffer_size_seekable() - 1, std::streamoff(0));
         unsigned total_read_length = seekpos - endpos;
         unsigned full_reads = total_read_length / size;
         for(unsigned i = 0; i < full_reads; ++i) {
           std::streamsize read = stream.read(buffer.data(), size).gcount();
           setg(buffer.data(), buffer.data() + read - 1, buffer.data() + read);
           base += size;
-          if(!stream.good()) { return invalid_position(); }
+          if(!stream.good()) {
+              setg(eback(), egptr(), egptr());
+              return invalid_position();
+          }
         }
-
         unsigned partial_read = total_read_length % size;
-        unsigned copy_length = size - partial_read;
-        std::memmove(eback(), eback() + (size - copy_length), copy_length);
-        std::streamsize read = stream.read(eback() + copy_length, partial_read).gcount();
-        setg(eback(), eback() + copy_length + read - 1, eback() + copy_length + read);
-        base += partial_read;
-        return stream.good() ? pos_type(base + buffer_size_read()) : invalid_position();
+        if(partial_read > 0) {
+          unsigned copy_length = size - partial_read;
+          std::memmove(eback(), eback() + (size - copy_length), copy_length);
+          std::streamsize read = stream.read(eback() + copy_length, partial_read).gcount();
+          setg(eback(), eback() + copy_length + read - 1, eback() + copy_length + read);
+          base += partial_read;
+        }
+        if(stream.good()) {
+            return pos_type(base + buffer_size_read());
+        } else {
+            setg(eback(), egptr(), egptr());
+            return invalid_position();
+        }
     }
 
     bool input_sequence(std::ios_base::openmode which) {

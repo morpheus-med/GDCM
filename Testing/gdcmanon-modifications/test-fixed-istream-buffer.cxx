@@ -151,4 +151,19 @@ TEST(can_get_current_position) {
    ASSERT_EQ(static_cast<char>(buf.underflow()), '3');
 }
 
+TEST(returns_eof_when_full_seek_past_end) {
+   std::stringstream stream(in);
+   fixed_istream_buffer buf(stream, 4);
+   buf.seekpos(13, std::ios_base::in);
+   buf.seekpos(17, std::ios_base::in);
+   ASSERT_EQ(static_cast<char>(buf.underflow()), std::char_traits<char>::eof());
+}
+
+TEST(returns_eof_when_partial_seek_past_end) {
+   std::stringstream stream(in);
+   fixed_istream_buffer buf(stream, 4);
+   buf.seekpos(15, std::ios_base::in);
+   ASSERT_EQ(static_cast<char>(buf.underflow()), std::char_traits<char>::eof());
+}
+
 TEST_MAIN();
