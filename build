@@ -18,6 +18,7 @@ cmake \
       -DGDCM_DOCUMENTATION_SKIP_MANPAGES:BOOL=ON \
       -DGDCM_USE_SYSTEM_ZLIB:BOOL=ON \
       -DGDCM_USE_SYSTEM_OPENSSL:BOOL=ON \
+      -DCMAKE_BUILD_TYPE:STRING=Debug \
       ../
 NPROC=`grep -c ^processor /proc/cpuinfo`
 make -j${NPROC}

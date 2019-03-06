@@ -1,0 +1,32 @@
+#!/bin/bash
+
+source ./test-helpers.sh
+
+function get_md5() {
+    md5sum "$1" | cut -d " " -f1
+}
+
+declare file="${1:-single-dicom.dcm}"
+declare out=out.dcm
+
+function compare_md5() {
+    compare_val "MD5 anonymized" "$(get_md5 ${out})" "cd6278b8d422e80e808eead3308baaeb"
+}
+
+gdcmanon -i ${file} -o ${out} -c dummy-cert.cer
+compare_md5
+rm ${out}
+
+./read-to-stdout ${file} > ${out}
+compare_val "MD5 original" "$(get_md5 ${out})" "69dc8ec827208087dc1ef850464476a0"
+rm ${out}
+
+./read-to-stdout ${file} | gdcmanon -i stdin -o stdout -c dummy-cert.cer > ${out}
+compare_md5
+rm ${out}
+
+./stream-anon-child ${file} ${out}
+compare_md5
+rm ${out}
+
+verify_results

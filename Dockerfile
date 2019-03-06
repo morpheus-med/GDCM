@@ -11,7 +11,9 @@ RUN set -x && \
     patch \
     file \
     bash \
-    vim
+    vim \
+    nodejs \
+    gdb
 
 WORKDIR /build/GDCM/
 

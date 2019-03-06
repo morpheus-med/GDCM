@@ -1,0 +1,5 @@
+#!/bin/bash
+
+declare test="test-fixed-istream-buffer"
+g++ -I../../Source/DataStructureAndEncodingDefinition ${test}.cxx -o ${test}.run && ./${test}.run
+rm ./${test}.run
