@@ -9,8 +9,5 @@ const anon = child_process.spawn('gdcmanon', ['-c', 'dummy-cert.cer', '-i', 'std
 
 anon.stderr.on('data', (data) => { console.log(`anon stderr:\n${data}`); });
 
-anon.stdout.setDefaultEncoding('binary');
 anon.stdout.pipe(dicom_out);
-
-anon.stdin.setEncoding('binary');
 dicom_in.pipe(anon.stdin);
