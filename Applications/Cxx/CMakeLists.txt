@@ -5,6 +5,7 @@
 # gdcmconv
 # gdcmanon
 
+find_package(Boost REQUIRED system)
 
 if(WIN32 AND NOT CYGWIN)
   include_directories(
@@ -140,6 +141,8 @@ foreach(exename ${GDCM_EXECUTABLE_NAME})
   target_link_libraries(${exename} gdcmMSFF)
   if(${exename} STREQUAL "gdcmpdf")
     target_link_libraries(${exename} ${POPPLER_LIBRARIES})
+  elseif(${exename} STREQUAL "gdcmanon")
+    target_link_libraries(${exename} ${Boost_LIBRARIES})
   elseif(${exename} STREQUAL "gdcmxml")
     target_link_libraries(${exename} ${LIBXML2_LIBRARIES})
   elseif(${exename} STREQUAL "gdcmscu")

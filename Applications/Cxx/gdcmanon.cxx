@@ -16,6 +16,10 @@
  * Implementation of E.1.1 De-identify & E.1.2 Re-identify
  */
 
+#include <boost/asio.hpp>
+using namespace boost::asio;
+using namespace boost::asio::ip;
+
 #include <memory>
 
 #include "gdcmReader.h"
@@ -112,33 +116,12 @@ static bool AnonymizeOneFileDumb(gdcm::Anonymizer &anon, const char *filename, c
   return success;
 }
 
-static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const char *outfilename, bool continuemode = false)
+static bool AnonymizeOneFile(
+  gdcm::Anonymizer &anon,
+  gdcm::Reader& reader,
+  gdcm::Writer& writer,
+  const std::string& filename)
 {
-  gdcm::Reader reader;
-  std::unique_ptr<fixed_istream_buffer> seek_buffer;
-  std::unique_ptr<std::istream> buffered_stream;
-
-  if(strcmp(filename, "stdin") == 0) {
-    seek_buffer.reset(new fixed_istream_buffer(std::cin, 512));
-    buffered_stream.reset(new std::istream(seek_buffer.get()));
-    reader.SetStream(*buffered_stream);
-  } else {
-    reader.SetFileName(filename);
-  }
-  if( !reader.Read() )
-    {
-    std::cerr << "Could not read : " << filename << std::endl;
-    if( continuemode )
-      {
-      std::cerr << "Skipping from anonymization process (continue mode)." << std::endl;
-      return true;
-      }
-    else
-      {
-      std::cerr << "Check [--continue] option for skipping files." << std::endl;
-      return false;
-      }
-    }
   gdcm::File &file = reader.GetFile();
   gdcm::MediaStorage ms;
   ms.SetFromFile(file);
@@ -173,28 +156,79 @@ static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const
   gdcm::FileMetaInformation &fmi = file.GetHeader();
   fmi.Clear();
 
-  gdcm::Writer writer;
-  if (strcmp(outfilename, "stdout") == 0) {
-    writer.SetStream(std::cout);
-  } else {
-    writer.SetFileName(outfilename);
-  }
   writer.SetFile( file );
-  if( !writer.Write() )
-    {
-    std::cerr << "Could not Write : " << outfilename << std::endl;
-    if( strcmp(filename,outfilename) != 0 )
-      {
-      gdcm::System::RemoveFile( outfilename );
+
+  return true;
+}
+
+static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const char *outfilename, bool continuemode) {
+    gdcm::Reader reader;
+    reader.SetFileName(filename);
+
+    if (!reader.Read()) {
+      std::cerr << "Could not read : " << filename << std::endl;
+      if (continuemode) {
+        std::cerr << "Skipping from anonymization process (continue mode)." << std::endl;
+        return true;
+      } else {
+        std::cerr << "Check [--continue] option for skipping files." << std::endl;
+        return false;
       }
-    else
-      {
-      std::cerr << "gdcmanon just corrupted: " << filename << " for you (data lost)." << std::endl;
+    }
+
+    gdcm::Writer writer;
+    writer.SetFileName(outfilename);
+    if (!AnonymizeOneFile(anon, reader, writer, filename)) {
+      return false;
+    }
+
+    if (!writer.Write()) {
+      std::cerr << "Could not Write : " << outfilename << std::endl;
+      if (strcmp(filename, outfilename) != 0) {
+        gdcm::System::RemoveFile(outfilename);
+      } else {
+        std::cerr << "gdcmanon just corrupted: " << filename << " for you (data lost)." << std::endl;
+      }
+      return false;
+    }
+
+    return true;
+}
+
+static void AnonymizeNetworkFiles(gdcm::Anonymizer &anon, unsigned short port)
+{
+  io_service ioservice;
+  tcp::endpoint endpoint(tcp::v4(), port);
+  tcp::acceptor acceptor(ioservice, endpoint);
+  std::cout << "Listening for connections on: " << port << std::endl;
+
+  while (true) {
+    tcp::iostream socket_stream;
+    boost::system::error_code connection_error;
+    acceptor.accept(*socket_stream.rdbuf(), connection_error);
+    fixed_istream_buffer seek_buffer(socket_stream, 512);
+    std::istream buffered_stream(&seek_buffer);
+
+    if (!connection_error) {
+      gdcm::Reader reader;
+      reader.SetStream(buffered_stream);
+      if(!reader.Read()) {
+        std::cerr << "Could not read tcp stream" << std::endl;
+        continue;
       }
 
-    return false;
+      gdcm::Writer writer;
+      writer.SetStream(socket_stream);
+      if (AnonymizeOneFile(anon, reader, writer, "tcp stream")) {
+        socket_stream.clear();  // wont let us write due to hitting the EOF on read otherwise
+        if (!writer.Write()) {
+          std::cerr << "Could not write tcp stream" << std::endl;
+        }
+      }
+    } else {
+        std::cerr << connection_error.message() << std::endl;
     }
-  return true;
+  }
 }
 
 static bool GetRSAKeys(gdcm::CryptographicMessageSyntax &cms, const char *privpath = 0, const char *certpath = 0)
@@ -232,6 +266,8 @@ static void PrintHelp()
   std::cout << "Options:" << std::endl;
   std::cout << "  -i --input                  DICOM filename / directory / stdin for standard input" << std::endl;
   std::cout << "  -o --output                 DICOM filename / directory / stdout for standard output" << std::endl;
+  std::cout << "  -t --tcp                    Starts the process as a tcp server on the specified port." << std::endl;
+  std::cout << "                              Is synchronous and processes one file per connection. Ignores -i -o flags." << std::endl;
   std::cout << "  -j --json                   Output de-identified data to json" << std::endl;
   std::cout << "  -r --recursive              recursively process (sub-)directories." << std::endl;
   std::cout << "     --continue               Do not stop when file found is not DICOM." << std::endl;
@@ -293,6 +329,77 @@ static gdcm::CryptographicMessageSyntax::CipherTypes GetFromString( const char *
   return ciphertype;
 }
 
+bool populate_file_names(
+  const std::string& filename,
+  const std::string& outfilename,
+  gdcm::Directory::FilenamesType& filenames,
+  gdcm::Directory::FilenamesType& outfilenames,
+  bool recursive) {
+ if( !gdcm::System::FileExists(filename.c_str()) )
+    {
+    std::cerr << "Could not find file: " << filename << std::endl;
+    return false;
+    }
+
+  // Are we in single file or directory mode:
+  gdcm::Directory dir;
+  if( gdcm::System::FileIsDirectory(filename.c_str()) )
+    {
+    if( !gdcm::System::FileIsDirectory(outfilename.c_str()) )
+      {
+      if( gdcm::System::FileExists( outfilename.c_str() ) )
+        {
+        std::cerr << "Could not create directory since " << outfilename << " is already a file" << std::endl;
+        return false;
+        }
+
+      }
+    // For now avoid user mistake
+    if( filename == outfilename )
+      {
+      std::cerr << "Input directory should be different from output directory" << std::endl;
+      return false;
+      }
+    dir.Load(filename, recursive);
+    filenames = dir.GetFilenames();
+    gdcm::Directory::FilenamesType::const_iterator it = filenames.begin();
+    // Prepare outfilenames
+    for( ; it != filenames.end(); ++it )
+      {
+      std::string dup = *it; // make a copy
+      std::string &out = dup.replace(0, filename.size(), outfilename );
+      outfilenames.push_back( out );
+      }
+    // Prepare outdirectory
+    gdcm::Directory::FilenamesType const &dirs = dir.GetDirectories();
+    gdcm::Directory::FilenamesType::const_iterator itdir = dirs.begin();
+    for( ; itdir != dirs.end(); ++itdir )
+      {
+      std::string dirdup = *itdir; // make a copy
+      std::string &dirout = dirdup.replace(0, filename.size(), outfilename );
+      //std::cout << "Making directory: " << dirout << std::endl;
+      if( !gdcm::System::MakeDirectory( dirout.c_str() ) )
+        {
+        std::cerr << "Could not create directory: " << dirout << std::endl;
+        return false;
+        }
+      }
+    }
+  else
+    {
+    filenames.push_back( filename );
+    outfilenames.push_back( outfilename );
+    }
+
+  if( filenames.size() != outfilenames.size() )
+    {
+    std::cerr << "Something went really wrong" << std::endl;
+    return false;
+    }
+
+    return true;
+}
+
 int main(int argc, char *argv[])
 {
   int c;
@@ -327,6 +434,8 @@ int main(int argc, char *argv[])
   int remove_tag = 0;
   int replace_tag = 0;
   int crypto_api = 0;
+  unsigned short port = 0;
+  bool use_network = false;
   std::vector<gdcm::Tag> empty_tags;
   std::vector<gdcm::Tag> remove_tags;
   std::vector< std::pair<gdcm::Tag, std::string> > replace_tags_value;
@@ -340,6 +449,7 @@ int main(int argc, char *argv[])
     static struct option long_options[] = {
         {"input", required_argument, NULL, 'i'},                 // i
         {"output", required_argument, NULL, 'o'},                // o
+        {"tcp", required_argument, NULL, 't'},
         {"json", required_argument, NULL, 'j'},                  // j
         {"root-uid", required_argument, &rootuid, 1}, // specific Root (not GDCM)
         {"resources-path", required_argument, &resourcespath, 1},
@@ -372,7 +482,7 @@ int main(int argc, char *argv[])
         {0, 0, 0, 0}
     };
 
-    c = getopt_long (argc, argv, "i:o:j:rdek:c:p:VWDEhv",
+    c = getopt_long (argc, argv, "i:o:t:j:rdek:c:p:VWDEhv",
       long_options, &option_index);
     if (c == -1)
       {
@@ -489,6 +599,15 @@ int main(int argc, char *argv[])
         }
       break;
 
+    case 't':
+    {
+      int converted = atoi(optarg);
+      assert(converted > 0);
+      port = static_cast<unsigned short>(converted);
+      use_network = true;
+      break;
+    }
+
     case 'i':
       assert( filename.empty() );
       filename = optarg;
@@ -601,7 +720,7 @@ int main(int argc, char *argv[])
     return 0;
     }
 
-  if( filename.empty() )
+  if( !use_network && filename.empty() )
     {
     //std::cerr << "Need input file (-i)\n";
     PrintHelp();
@@ -670,68 +789,9 @@ int main(int argc, char *argv[])
       }
     }
 
-  if( filename.compare("stdin") != 0 && !gdcm::System::FileExists(filename.c_str()) )
-    {
-    std::cerr << "Could not find file: " << filename << std::endl;
+  if(!use_network && !populate_file_names(filename, outfilename, filenames, outfilenames, recursive > 0)) {
     return 1;
-    }
-
-  // Are we in single file or directory mode:
-  unsigned int nfiles = 1;
-  gdcm::Directory dir;
-  if( gdcm::System::FileIsDirectory(filename.c_str()) )
-    {
-    if( !gdcm::System::FileIsDirectory(outfilename.c_str()) )
-      {
-      if( gdcm::System::FileExists( outfilename.c_str() ) )
-        {
-        std::cerr << "Could not create directory since " << outfilename << " is already a file" << std::endl;
-        return 1;
-        }
-
-      }
-    // For now avoid user mistake
-    if( filename == outfilename )
-      {
-      std::cerr << "Input directory should be different from output directory" << std::endl;
-      return 1;
-      }
-    nfiles = dir.Load(filename, (recursive > 0 ? true : false));
-    filenames = dir.GetFilenames();
-    gdcm::Directory::FilenamesType::const_iterator it = filenames.begin();
-    // Prepare outfilenames
-    for( ; it != filenames.end(); ++it )
-      {
-      std::string dup = *it; // make a copy
-      std::string &out = dup.replace(0, filename.size(), outfilename );
-      outfilenames.push_back( out );
-      }
-    // Prepare outdirectory
-    gdcm::Directory::FilenamesType const &dirs = dir.GetDirectories();
-    gdcm::Directory::FilenamesType::const_iterator itdir = dirs.begin();
-    for( ; itdir != dirs.end(); ++itdir )
-      {
-      std::string dirdup = *itdir; // make a copy
-      std::string &dirout = dirdup.replace(0, filename.size(), outfilename );
-      //std::cout << "Making directory: " << dirout << std::endl;
-      if( !gdcm::System::MakeDirectory( dirout.c_str() ) )
-        {
-        std::cerr << "Could not create directory: " << dirout << std::endl;
-        return 1;
-        }
-      }
-    }
-  else
-    {
-    filenames.push_back( filename );
-    outfilenames.push_back( outfilename );
-    }
-
-  if( filenames.size() != outfilenames.size() )
-    {
-    std::cerr << "Something went really wrong" << std::endl;
-    return 1;
-    }
+  }
 
   // Debug is a little too verbose
   gdcm::Trace::SetDebug( (debug  > 0 ? true : false));
@@ -795,22 +855,20 @@ int main(int argc, char *argv[])
     }
 
   // Get private key/certificate
-  gdcm::CryptographicMessageSyntax *cms_ptr = NULL;
+  std::unique_ptr<gdcm::CryptographicMessageSyntax> cms_ptr;
   if( crypto_factory )
     {
-    cms_ptr = crypto_factory->CreateCMSProvider();
+    cms_ptr.reset(crypto_factory->CreateCMSProvider());
     }
   if( !dumb_mode )
     {
     if( !GetRSAKeys(*cms_ptr, rsa_path.c_str(), cert_path.c_str() ) )
       {
-      delete cms_ptr;
       return 1;
       }
     if (!password.empty() && !cms_ptr->SetPassword(password.c_str(), password.length()) )
       {
       std::cerr << "Could not set the password " << std::endl;
-      delete cms_ptr;
       return 1;
       }
     cms_ptr->SetCipherType( ciphertype );
@@ -822,33 +880,35 @@ int main(int argc, char *argv[])
   nlohmann::json phi;
   if( !dumb_mode )
     {
-    anon.SetCryptographicMessageSyntax( cms_ptr );
+    anon.SetCryptographicMessageSyntax( cms_ptr.get() );
     }
 
-  if( dumb_mode )
+  bool continue_mode = continuemode > 0;
+  if(use_network) {
+    AnonymizeNetworkFiles(anon, port);
+  }
+  else if( dumb_mode )
     {
-    for(unsigned int i = 0; i < nfiles; ++i)
+    for(unsigned int i = 0; i < filenames.size(); ++i)
       {
       const char *in  = filenames[i].c_str();
       const char *out = outfilenames[i].c_str();
-      if( !AnonymizeOneFileDumb(anon, in, out, empty_tags, remove_tags, replace_tags_value, (continuemode > 0 ? true: false)) )
+      if( !AnonymizeOneFileDumb(anon, in, out, empty_tags, remove_tags, replace_tags_value, continue_mode) )
         {
         //std::cerr << "Could not anonymize: " << in << std::endl;
-        delete cms_ptr;
         return 1;
         }
       }
     }
   else
     {
-    for(unsigned int i = 0; i < nfiles; ++i)
+    for(unsigned int i = 0; i < filenames.size(); ++i)
       {
       const char *in  = filenames[i].c_str();
       const char *out = outfilenames[i].c_str();
-      if( !AnonymizeOneFile(anon, in, out, (continuemode > 0 ? true: false)) )
+      if( !AnonymizeOneFile(anon, in, out, continue_mode) )
         {
         //std::cerr << "Could not anonymize: " << in << std::endl;
-        delete cms_ptr;
         return 1;
         }
       phi[in] = anon.file_phi;
@@ -862,6 +922,5 @@ int main(int argc, char *argv[])
           json_file << phi.dump(4) << std::endl;
           json_file.close();
       }
-  delete cms_ptr;
   return 0;
 }
