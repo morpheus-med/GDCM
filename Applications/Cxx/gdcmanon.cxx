@@ -195,7 +195,7 @@ static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const
     return true;
 }
 
-static void AnonymizeNetworkFiles(gdcm::Anonymizer &anon, unsigned short port)
+static void anonymize_network_files(gdcm::Anonymizer &anon, unsigned short port)
 {
   io_service ioservice;
   tcp::endpoint endpoint(tcp::v4(), port);
@@ -226,7 +226,7 @@ static void AnonymizeNetworkFiles(gdcm::Anonymizer &anon, unsigned short port)
         }
       }
     } else {
-        std::cerr << connection_error.message() << std::endl;
+        std::cerr << "Could not connect: " << connection_error.message() << std::endl;
     }
   }
 }
@@ -267,7 +267,8 @@ static void PrintHelp()
   std::cout << "  -i --input                  DICOM filename / directory / stdin for standard input" << std::endl;
   std::cout << "  -o --output                 DICOM filename / directory / stdout for standard output" << std::endl;
   std::cout << "  -t --tcp                    Starts the process as a tcp server on the specified port." << std::endl;
-  std::cout << "                              Is synchronous and processes one file per connection. Ignores -i -o flags." << std::endl;
+  std::cout << "                              Is synchronous and expects one file per connection." << std::endl;
+  std::cout << "                              Operates as --continue and ignores -i and -o flags." << std::endl;
   std::cout << "  -j --json                   Output de-identified data to json" << std::endl;
   std::cout << "  -r --recursive              recursively process (sub-)directories." << std::endl;
   std::cout << "     --continue               Do not stop when file found is not DICOM." << std::endl;
@@ -885,7 +886,7 @@ int main(int argc, char *argv[])
 
   bool continue_mode = continuemode > 0;
   if(use_network) {
-    AnonymizeNetworkFiles(anon, port);
+    anonymize_network_files(anon, port);
   }
   else if( dumb_mode )
     {
