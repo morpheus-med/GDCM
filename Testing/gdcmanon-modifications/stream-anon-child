@@ -10,7 +10,7 @@ const port = '10110';
 const anon = child_process.spawn('gdcmanon', ['-c', 'dummy-cert.cer', '--tcp', port]);
 anon.stderr.on('data', (data) => { console.log(`anon stderr:\n${data}`); });
 
-anon.stdout.on('data', (data) => {
+anon.stdout.once('data', (data) => {
     const con = net.createConnection(port);
     con.on('connect', () => {
         dicom_in.pipe(con);
