@@ -17,7 +17,8 @@
  */
 
 #include <boost/asio.hpp>
-using namespace boost::asio;
+using namespace boost;
+using namespace boost::system;
 using namespace boost::asio::ip;
 
 #include <memory>
@@ -197,15 +198,16 @@ static bool AnonymizeOneFile(gdcm::Anonymizer &anon, const char *filename, const
 
 static void anonymize_network_files(gdcm::Anonymizer &anon, unsigned short port)
 {
-  io_service ioservice;
+  asio::io_context iocontext;
   tcp::endpoint endpoint(tcp::v4(), port);
-  tcp::acceptor acceptor(ioservice, endpoint);
+  tcp::acceptor acceptor(iocontext, endpoint);
   std::cout << "Listening for connections on: " << port << std::endl;
 
   while (true) {
     tcp::iostream socket_stream;
-    boost::system::error_code connection_error;
-    acceptor.accept(*socket_stream.rdbuf(), connection_error);
+    system::error_code connection_error;
+    acceptor.accept(socket_stream.socket(), connection_error);
+
     fixed_istream_buffer seek_buffer(socket_stream, 512);
     std::istream buffered_stream(&seek_buffer);
 
@@ -227,6 +229,10 @@ static void anonymize_network_files(gdcm::Anonymizer &anon, unsigned short port)
       }
     } else {
         std::cerr << "Could not connect: " << connection_error.message() << std::endl;
+        if(connection_error != errc::make_error_code(errc::connection_aborted) &&
+          connection_error != errc::make_error_code(errc::protocol_error)){
+          exit(1);
+        }
     }
   }
 }
