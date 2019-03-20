@@ -737,13 +737,11 @@ bool Anonymizer::BasicApplicationLevelConfidentialityProfile1()
   //p7.SetCertificate( this->x509 );
 
   DataSet &ds = F->GetDataSet();
-  if(  ds.FindDataElement( Tag(0x0400,0x0500) )
-    || ds.FindDataElement( Tag(0x0012,0x0062) )
-    || ds.FindDataElement( Tag(0x0012,0x0063) ) )
-    {
-    gdcmDebugMacro( "EncryptedContentTransferSyntax Attribute is present !" );
-    return false;
-    }
+  // GDCM will not reprocess an already anonymized study but Arterys does
+  // Remove encrypted content attributes to be consistent with erase-tags.sh OTF-4519
+  ds.Remove(Tag(0x0400,0x0500));
+  ds.Remove(Tag(0x0012,0x0062));
+  ds.Remove(Tag(0x0012,0x0063));
 #if 0
   if( !ds.FindDataElement( Tag(0x0008,0x0018) )
     || ds.GetDataElement( Tag(0x0008,0x0018) ).IsEmpty() )

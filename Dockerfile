@@ -13,7 +13,8 @@ RUN set -x && \
     bash \
     vim \
     nodejs \
-    gdb
+    gdb \
+    boost-dev=1.66.0-r0
 
 WORKDIR /build/GDCM/
 

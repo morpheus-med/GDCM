@@ -2,12 +2,21 @@
 
 const child_process = require('child_process');
 const fs = require('fs');
+const net = require('net');
 
 const dicom_in = fs.createReadStream(process.argv[2]);
 const dicom_out = fs.createWriteStream(process.argv[3]);
-const anon = child_process.spawn('gdcmanon', ['-c', 'dummy-cert.cer', '-i', 'stdin', '-o', 'stdout']);
-
+const port = '10110';
+const anon = child_process.spawn('gdcmanon', ['-c', 'dummy-cert.cer', '--tcp', port]);
 anon.stderr.on('data', (data) => { console.log(`anon stderr:\n${data}`); });
 
-anon.stdout.pipe(dicom_out);
-dicom_in.pipe(anon.stdin);
+anon.stdout.once('data', (data) => {
+    const con = net.createConnection(port);
+    con.on('connect', () => {
+        dicom_in.pipe(con);
+        con.pipe(dicom_out);
+    });
+    con.on('end', () => {
+        anon.kill();
+    });
+});
