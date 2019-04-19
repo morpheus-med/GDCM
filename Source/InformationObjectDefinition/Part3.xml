@@ -550,6 +550,134 @@ Note:  This allows the specification of clinical, acquisition, or procedural qua
       <description>User-defined comments on the Performed Procedure Step.</description>
     </entry>
   </macro>
+  <macro table="10-17" name="HL7v2 Hierarchic Designator Macro Attributes">
+    <entry group="0040" element="0031" name="Local Namespace Entity ID" type="1C">
+      <description>Identifies an entity within the local namespace or domain. Required if Universal Entity ID (0040,0032) is not present; may be present otherwise.</description>
+    </entry>
+    <entry group="0040" element="0032" name="Universal Entity ID" type="1C">
+      <description>Universal or unique identifier for an entity. Required if Local Namespace Entity ID (0040,0031) is not present; may be present otherwise.</description>
+    </entry>
+    <entry group="0040" element="0033" name="Universal Entity ID Type" type="1C">
+      <description>Standard defining the format of the Universal Entity ID. Required if Universal Entity ID (0040,0032) is present.
+Enumerated Values:
+DNS = An Internet dotted name. Either in ASCII or as integers
+EUI64 = An IEEE Extended Unique Identifier
+ISO = An International Standards Organization Object Identifier
+URI = Uniform Resource Identifier
+UUID = The DCE Universal Unique Identifier
+X400 = An X.400 MHS identifier
+X500 = An X.500 directory name</description>
+    </entry>
+  </macro>
+  <macro table="10-23" name="Exposure Index Macro Attributes">
+    <entry group="0018" element="1411" name="Exposure Index" type="3">
+      <description>Measure of the detector response to radiation in the relevant image region of an image acquired with a digital X-Ray imaging system as defined in IEC 62494-1.
+Note
+1. A string rather than binary Value Representation is used for this Attribute, in order to allow the sender to control the precision of the value as suggested in the report of AAPM Task Group 116.
+2. This index value is scaled as defined by IEC 62494-1.</description>
+    </entry>
+    <entry group="0018" element="1412" name="Target Exposure Index" type="3">
+      <description>The target value used to calculate Deviation Index (0018,1413) as defined in IEC 62494-1.</description>
+    </entry>
+    <entry group="0018" element="1413" name="Deviation Index" type="3">
+      <description>A scaled representation of the difference of the Exposure Index compared to the Target Exposure Index as defined in IEC 62494-1 and the report of AAPM TG 116.</description>
+    </entry>
+  </macro>
+  <macro table="C.7.6.22-2" name="Specimen Macro Attributes">
+    <entry group="0040" element="0512" name="Container Identifier" type="1">
+      <description>The identifier for the container that contains the specimen(s) being imaged. See Section C.7.6.22.1.1.</description>
+    </entry>
+    <entry group="0040" element="0513" name="Issuer of the Container Identifier Sequence" type="2">
+      <description>Organization that assigned the Container Identifier.
+Zero or one Item shall be included in this Sequence.</description>
+    </entry>
+    <include ref="&gt;Include 'HL7v2 Hierarchic Designator Macro' Table 10-17"/>
+    <entry group="0040" element="0515" name="Alternate Container Identifier Sequence" type="3">
+      <description>Sequence of alternate identifiers for the container that contains the specimen(s) being imaged. These may have been assigned, e.g., by the manufacturer, or by another institution that collected the specimen. One or more Items are permitted in this Sequence.</description>
+    </entry>
+    <entry group="0040" element="0512" name="&gt;Container Identifier" type="1">
+      <description>The identifier for the container that contains the specimen(s) being imaged.</description>
+    </entry>
+    <entry group="0040" element="0513" name="&gt;Issuer of the Container Identifier Sequence" type="2">
+      <description>Organization that assigned the Container Identifier.
+Zero or one Item shall be included in this Sequence.</description>
+    </entry>
+    <include ref="&gt;&gt;Include 'HL7v2 Hierarchic Designator Macro' Table 10-17"/>
+    <entry group="0040" element="0518" name="Container Type Code Sequence" type="2">
+      <description>
+Zero or one Item shall be included in this Sequence.</description>
+    </entry>
+    <include ref="&gt;&gt;Include 'Code Sequence Macro' Table 8.8-1" description="Baseline Context ID is CID 8102."/>
+    <entry group="0008" element="0070" name="&gt;Manufacturer" type="3">
+      <description>Manufacturer of the container component.</description>
+    </entry>
+    <entry group="0008" element="1090" name="&gt;Manufacturer's Model Name" type="3">
+      <description>Manufacturer's model name of the container component.</description>
+    </entry>
+    <entry group="0050" element="001B" name="&gt;Container Component ID" type="3">
+      <description>Manufacturer's identifier of the container component, e.g., Lot Number and/or Version.</description>
+    </entry>
+    <entry group="0050" element="001C" name="&gt;Container Component Length" type="3">
+      <description>Length in mm of container component.</description>
+    </entry>
+    <entry group="0050" element="0015" name="&gt;Container Component Width" type="3">
+      <description>Width in mm of container component.</description>
+    </entry>
+    <entry group="0050" element="001D" name="&gt;Container Component Diameter" type="3">
+      <description>Diameter in mm of container component for cylindrical or circular components.</description>
+    </entry>
+    <entry group="0050" element="0013" name="&gt;Container Component Thickness" type="3">
+      <description>Thickness in mm of container component.</description>
+    </entry>
+    <entry group="0050" element="001A" name="&gt;Container Component Material" type="3">
+      <description>Material of container component.
+Defined Terms:
+GLASS
+PLASTIC
+METAL</description>
+    </entry>
+    <entry group="0050" element="001E" name="&gt;Container Component Description" type="3">
+      <description>Container component text description.</description>
+    </entry>
+    <entry group="0040" element="0560" name="Specimen Description Sequence" type="1">
+      <description>Sequence of identifiers and detailed description of the specimen(s) being imaged.
+One or more Items shall be included in this Sequence.
+Each specimen imaged in the Pixel Data shall be identified by an Item in this Sequence. Other specimens in/on the container, but not imaged in the Pixel Data, may also be identified by Items in this Sequence.</description>
+    </entry>
+    <entry group="0050" element="0551" name="&gt;Specimen Identifier" type="1">
+      <description>A departmental information system identifier for the Specimen. See Section C.7.6.22.1.1 and Section C.7.6.22.1.2.
+If a single specimen is present in a container, the value of the Specimen Identifier and the value of the Container Identifier are typically the same.</description>
+    </entry>
+    <entry group="0050" element="0562" name="&gt;Issuer of the Specimen Identifier Sequence" type="2">
+      <description>The name or code for the institution that has assigned the Specimen Identifier.
+Zero or one Item shall be included in this Sequence.</description>
+    </entry>
+    <include ref="&gt;&gt;Include 'Code Sequence Macro' Table 8.8-1" description="Baseline Context ID is CID 8103."/>
+    <entry group="0040" element="0600" name="&gt;Specimen Short Description" type="3">
+      <description>Short textual specimen description (may include ancestor specimen descriptions).</description>
+    </entry>
+    <entry group="0040" element="0602" name="&gt;Specimen Detailed Description" type="3">
+      <description>Detailed textual specimen description (may include ancestor specimen descriptions).</description>
+    </entry>
+    <entry group="0040" element="0610" name="&gt;Specimen Preparation Sequence" type="2">
+      <description>Sequence of Items identifying the process steps used to prepare the specimen for image acquisition. This includes description of all processing necessary to interpret the image.
+Zero or more Items shall be included in this Sequence.
+This Sequence includes description of the specimen sampling step from an ancestor specimen, potentially back to the original part collection.
+See Section C.7.6.22.1.3.</description>
+    </entry>
+    <entry group="0040" element="0612" name="&gt;&gt;&gt;Specimen Preparation Step Content Item Sequence" type="1">
+      <description>Sequence of Content Items identifying the processes used in one preparation step to prepare the specimen for image acquisition.
+One or more Items shall be included in this Sequence.</description>
+    </entry>
+    <include ref="&gt;&gt;&gt;Include 'Content Item Macro' Table 10-2" description="Baseline Template ID is TID 8001."/>
+    <include ref="&gt;Include 'Primary Anatomic Structure Macro' Table 10-8" description="Original anatomic location in patient of specimen. This location may be identical to that of the parent specimen, may be further refined by modifiers depending on the sampling procedure for this specimen, or may be a distinct concept."/>
+    <entry group="0040" element="0620" name="&gt;Specimen Localization Content Item Sequence" type="1C">
+      <description>Sequence of Content Items identifying the location of the specimen in the container and/or in the image. See Section C.7.6.22.1.4.
+One or more Items shall be included in this Sequence.
+Required if multiple specimens present in the image. May be present otherwise.</description>
+    </entry>
+    <include ref="&gt;&gt;Include 'Content Item Macro' Table 10-2" description="Defined Template ID is TID 8004."/>
+  </macro>
   <iod table="A.2-1" name="CR Image IOD Modules">
     <entry ie="Patient" name="Patient" ref="C.7.1.1" usage="M"/>
     <entry ie="Patient" name="Clinical Trial Subject" ref="C.7.1.3" usage="U"/>
@@ -2026,6 +2154,37 @@ Note:  This allows the specification of clinical, acquisition, or procedural qua
     <entry ie="Image" name="X-Ray 3D Craniofacial Acquisition" ref="C.8.21.3.3" usage="U"/>
     <entry ie="Image" name="X-Ray 3D Reconstruction" ref="C.8.21.4" usage="U"/>
     <entry ie="Image" name="SOP Common" ref="C.12.1" usage="M"/>
+  </iod>
+    <iod table="A.55-1" name="Breast Tomosynthesis Image IOD Modules">
+    <entry ie="Patient" name="Patient" ref="C.7.1.1" usage="M"/>
+    <entry ie="Patient" name="Clinical Trial Subject" ref="C.7.1.3" usage="U"/>
+    <entry ie="Study" name="General Study" ref="C.7.2.1" usage="M"/>
+    <entry ie="Study" name="Patient Study" ref="C.7.2.2" usage="U"/>
+    <entry ie="Study" name="Clinical Trial Study" ref="C.7.2.3" usage="U"/>
+    <entry ie="Series" name="General Series" ref="C.7.3.1" usage="M"/>
+    <entry ie="Series" name="Clinical Trial Series" ref="C.7.3.2" usage="U"/>
+    <entry ie="Series" name="Enhanced Mammography Series" ref="C.8.11.10" usage="M"/>
+    <entry ie="Frame of Reference" name="Frame of Reference" ref="C.7.4.1" usage="M"/>
+    <entry ie="Frame of Reference" name="Synchronization" ref="C.7.4.2" usage="C - Required if time synchronization was applied."/>
+    <entry ie="Equipment" name="General Equipment" ref="C.7.5.1" usage="M"/>
+    <entry ie="Equipment" name="Enhanced General Equipment" ref="C.7.5.2" usage="M"/>
+    <entry ie="Image" name="Image Pixel" ref="C.7.6.3" usage="M"/>
+    <entry ie="Image" name="Enhanced Contrast/Bolus" ref="C.7.6.4b" usage="C - Required if contrast media was applied."/>
+    <entry ie="Image" name="Device" ref="C.7.6.12" usage="U"/>
+    <entry ie="Image" name="Intervention" ref="C.7.6.13" usage="U"/>
+    <entry ie="Image" name="Acquisition Context" ref="C.7.6.14" usage="M"/>
+    <entry ie="Image" name="Multi-frame Functional Groups" ref="C.7.6.16" usage="M"/>
+    <entry ie="Image" name="Multi-frame Dimension" ref="C.7.6.17" usage="U"/>
+    <entry ie="Image" name="Image – Equipment Coordinate Relationship" ref="C.7.6.21" usage="U"/>
+    <entry ie="Image" name="Specimen" ref="C.7.6.22" usage="U"/>
+    <entry ie="Image" name="X-Ray 3D Image" ref="C.8.21.1" usage="M"/>
+    <entry ie="Image" name="Breast Tomosynthesis Contributing Sources" ref="C.8.21.2.3" usage="U"/>
+    <entry ie="Image" name="Breast Tomosynthesis Acquisition" ref="C.8.21.3.4" usage="U"/>
+    <entry ie="Image" name="X-Ray 3D Reconstruction" ref="C.8.21.4" usage="U"/>
+    <entry ie="Image" name="Breast View" ref="C.8.21.6" usage="M"/>
+    <entry ie="Image" name="SOP Common" ref="C.12.1" usage="M"/>
+    <entry ie="Image" name="Common Instance Reference" ref="C.12.2" usage="U"/>
+    <entry ie="Image" name="Frame Extraction" ref="C.12.3" usage="C - Required if the SOP Instance was created in response to a Frame-Level retrieve request."/>
   </iod>
   <iod table="B.7-1" name="Film Session IOD Modules">
     <entry name="SOP Common" ref="C.12.1" description="Contains SOP Common information"/>
@@ -6381,6 +6540,9 @@ SEGMENT TYPES
 <unrecognized-rows><term value="Opcode" meaning="Segment type"/><term value="0" meaning="Discrete"/><term value="1" meaning="Linear"/><term value="2" meaning="Indirect"/><term value="3 &amp; above" meaning="reserved"/></unrecognized-rows>
          </section>
     </entry>
+  </module>
+  <module ref="C.7.6.22" table="C.7.6.22-1" name="Specimen Module Attributes">
+    <include ref="Include 'Specimen Macro' Table C.7.6.22-2"/>
   </module>
   <module ref="C.8.1.1" table="C.8-1" name="CR Series Module Attributes">
     <entry group="0018" element="0015" name="Body Part Examined" type="2">
@@ -15628,6 +15790,25 @@ The teeth imaged shall be listed as multiple Items in the Primary Anatomic Struc
     </entry>
     <include ref="&gt;Include 'Code Sequence Macro' Table 8.8-1." description="DefinedContext ID 4018 or 4019. See C.8.11.9.1.1 for further explanation."/>
   </module>
+    <module ref="C.8.11.10" table="C.8-76b" name="Enhanced Mammography Series Module Attributes">
+    <entry group="0008" element="0060" name="Modality" type="1">
+      <description>Type of equipment that originally acquired the data used to create the images in this Series.
+Enumerated Values:
+MG
+See section C.7.3.1.1.1 for further explanation.</description>
+    </entry>
+    <entry group="0008" element="1111" name="Referenced Performed Procedure Step Sequence" type="1C">
+      <description>Uniquely identifies the Performed Procedure Step SOP Instance to which the Series is related.
+Only a single Item shall be included in this Sequence.
+Required if a Performed Procedure Step SOP Class was involved in the creation of this Series.</description>
+    </entry>
+    <include ref="&gt;Include 'SOP Instance Reference Macro' Table 10-11"/>
+    <entry group="0040" element="0275" name="Referenced Performed Procedure Step Sequence" type="3">
+      <description>Sequence that contains Attributes from the Imaging Service Request.
+One or more Items are permitted in this Sequence.</description>
+    </entry>
+    <include ref="&gt;Include Request Attributes Macro Table 10-9" description="For Reason for Requested Procedure Code Sequence (0040,100A) the Baseline Context IDs are 6051 and 6055. No Baseline Context IDs are defined for other Attributes.Note: For example, Requested Procedure Code Sequence (0040,100A) may be used to convey whether the images in the Series were taken for screening or diagnostic purposes."/>
+  </module>
   <module ref="C.8.12.1" table="C.8-77" name="VL Image Module Attributes">
     <entry group="0008" element="0008" name="Image Type" type="1">
       <description>Image identification characteristics.
@@ -19991,6 +20172,205 @@ Required if present and have an equal value in the contributing SOP Instances.</
 Required if present and consistent in the contributing SOP Instances.</description>
     </entry>
   </module>
+  <module ref="C.8.21.2.3" table="C.8.21.2.3-1" name="Breast Tomosynthesis Contributing Sources Module Attributes">
+    <entry group="0018" element="9506" name="Contributing Sources Sequence" type="1">
+      <description>A Sequence that describes characteristics of the sources that are used to create a derived SOP Instance.
+One or more Items shall be included in this Sequence.</description>
+    </entry>
+    <include ref="&gt;Include 'General Contributing Sources Macro' Table 10-13"/>
+    <include ref="&gt;Include 'Contributing Image Source Macro' Table 10-14"/>
+    <entry group="0018" element="7004" name="&gt;Detector Type" type="1">
+      <description>The type of detector used to acquire this image.
+Defined Terms:
+DIRECT = X-Ray photoconductor
+SCINTILLATOR = Phosphor used
+STORAGE = Storage phosphor</description>
+    </entry>
+    <entry group="0018" element="700A" name="&gt;Detector ID" type="1">
+      <description>The ID or serial number of the detector used to acquire this image.</description>
+    </entry>
+    <entry group="0018" element="700C" name="&gt;Date of Last Detector Calibration" type="1">
+      <description>The date on which the detector used to acquire this image as identified in Detector ID (0018,700A) was last calibrated.</description>
+    </entry>
+    <entry group="0018" element="700E" name="&gt;Time of Last Detector Calibration" type="1">
+      <description>The time at which the detector used to acquire this image as identified in Detector ID (0018,700A) was last calibrated.</description>
+    </entry>
+    <entry group="0018" element="7022" name="&gt;Detector Element Spacing" type="1">
+      <description>Physical distance between the center of each detector element, specified by a numeric pair: row spacing value (delimiter) column spacing value in mm. See Section 10.7.1.3 for further explanation of the value order.
+Note: This may not be the same as the Imager Pixel Spacing (0018,1164), and should not be assumed to describe the stored image.</description>
+    </entry>
+  </module>
+    <module ref="C.8.21.3.4" table="C.8.21.3.4-1" name="Breast Tomosynthesis Acquisition Module Attributes">
+    <entry group="0018" element="9507" name="X-Ray 3D Acquisition Sequence" type="1">
+      <description>Each Item represents an acquisition context related to one or more reconstructions.
+The values of Acquisition Index (0020,9518) may be used as index in this Sequence.
+One or more Items shall be included in this Sequence.</description>
+    </entry>
+    <entry group="0018" element="1147" name="&gt;Field of View Shape" type="1">
+      <description>Shape of the Field of View in the source projection images.
+Enumerated Values:
+RECTANGLE</description>
+    </entry>
+    <entry group="0018" element="9420" name="&gt;X-Ray Receptor Type" type="1">
+      <description>Identifies the type of X-Ray receptor used.
+Enumerated Values:
+DIGITAL_DETECTOR</description>
+    </entry>
+    <include ref="&gt;Include 'X Ray 3D General Shared Acquisiton Macro' Table C.8.21.3.1.1-1"/>
+    <include ref="&gt;Include 'X Ray 3D General Positioner Movement Macro' Table C.8.21.3.1.3-1"/>
+    <entry group="0018" element="1110" name="&gt;Distance Source to Detector" type="1">
+      <description>Distance in mm from source to detector center on the chest wall line.
+Note
+1. This value is traditionally referred to as Source Image Distance (SID).
+2. See Section C.8.11.7.1.1.</description>
+    </entry>
+    <entry group="0018" element="1111" name="&gt;Distance Source to Patient" type="1">
+      <description>Distance in mm from source to the breast support side that is closest to the Imaging Subject, as measured along the X-Ray beam vector.
+Note
+1. This value is traditionally referred to as Source Object Distance (SOD).
+2. See notes for this Attribute in Section C.8.11.5 DX Positioning Module.
+3. See Section C.8.11.7.1.1 for description of X-Ray beam vector.</description>
+    </entry>
+    <entry group="0018" element="1114" name="&gt;Estimated Radiographic Magnification Factor" type="1">
+      <description>Ratio of Source Image Receptor Distance (SID) over Source Object Distance (SOD).</description>
+    </entry>
+    <entry group="0018" element="1191" name="&gt;Anode Target Material" type="1">
+      <description>The primary material in the anode of the X-Ray source.
+Defined Terms:
+TUNGSTEN
+MOLYBDENUM
+RHODIUM</description>
+    </entry>
+    <entry group="0018" element="11A0" name="&gt;Body Part Thickness" type="1">
+      <description>The average thickness in mm of the body part examined when compressed, if compression has been applied during exposure.</description>
+    </entry>
+    <entry group="0018" element="7060" name="&gt;Exposure Control Mode" type="1">
+      <description>Type of exposure control.
+Defined Terms:
+MANUAL
+AUTOMATIC</description>
+    </entry>
+    <entry group="0018" element="7062" name="&gt;Exposure Control Mode Description" type="1">
+      <description>Text description of the mechanism of exposure control.
+May describe the number and type of exposure sensors or position of the sensitive area of the imaging detector.</description>
+    </entry>
+    <entry group="0040" element="0314" name="&gt;Half Value Layer" type="1">
+      <description>The thickness of Aluminum in mm required to reduce the X-Ray Output (0040,0312) by a factor of two.
+Note: This value may be a calibrated value rather than measured during the exposure.</description>
+    </entry>
+    <entry group="0040" element="0316" name="&gt;Organ Dose" type="3">
+      <description>Organ dose value measured in dGy representing the collective total for all acquired frames described in this Sequence Item.
+Note: This may be an estimated value.</description>
+    </entry>
+    <entry group="0040" element="8302" name="&gt;Entrance Dose in mGy" type="3">
+      <description>Entrance dose value measured in mGy at the surface of the patient representing the collective total for all acquired frames described in this Sequence Item.
+Note: This may be an estimated value based on assumptions about the patient's body size and habitus.</description>
+    </entry>
+    <entry group="0040" element="8303" name="&gt;Entrance Dose Derivation" type="3">
+      <description>Describes what type of dose is represented by the values of Entrance Dose in mGy (0040,8302).
+Enumerated Values:
+IAK = Represents air kerma at the entrance surface, no backscatter included, no air kerma to tissue dose conversion applied.
+ESAK = Represents air kerma at the entrance surface, with backscatter included, no air kerma to tissue dose conversion applied.
+ESDBS = Represents absorbed dose in tissue at the entrance surface, with backscatter included.
+ESDNOBS = Represents absorbed dose in tissue at the entrance surface, without backscatter included.
+Only meaningful if Entrance Dose in mGy (0040,8302) is present.</description>
+    </entry>
+    <entry group="0018" element="1190" name="&gt;Focal Spot(s)" type="1">
+      <description>Nominal focal spot size in mm used to acquire the projection images.</description>
+    </entry>
+    <entry group="0018" element="701A" name="&gt;Detector Binning" type="1C">
+      <description>Number of active detectors used to generate a single pixel. Specified as number of row detectors per pixel then column.
+Required if detector binning was applied to the projection images.</description>
+    </entry>
+    <entry group="0018" element="7001" name="&gt;Detector Temperature" type="1">
+      <description>Detector temperature during exposure in degrees Celsius.</description>
+    </entry>
+    <entry group="0018" element="1160" name="&gt;Filter Type" type="1">
+      <description>Type of filter(s) inserted into the X-Ray beam (e.g., wedges). See Attribute Description in Section C.8.7.10 for Defined Terms.</description>
+    </entry>
+    <entry group="0018" element="7050" name="&gt;Filter Material" type="1">
+      <description>The X-Ray absorbing material used in the filter. May be multi-valued. See Attribute Description in Section C.8.7.10 for Defined Terms.</description>
+    </entry>
+    <entry group="0018" element="7052" name="&gt;Filter Thickness Minimum" type="3">
+      <description>See Attribute Description in Section C.8.7.10.</description>
+    </entry>
+    <entry group="0018" element="7054" name="&gt;Filter Thickness Maximum" type="3">
+      <description>See Attribute Description in Section C.8.7.10.</description>
+    </entry>
+    <entry group="0018" element="7056" name="&gt;Filter Beam Path Length Minimum" type="3">
+      <description>See Attribute Description in Section C.8.7.10.</description>
+    </entry>
+    <entry group="0018" element="7058" name="&gt;Filter Beam Path Length Maxmimum" type="3">
+      <description>See Attribute Description in Section C.8.7.10.</description>
+    </entry>
+    <entry group="0018" element="11A2" name="&gt;Compression Force" type="1">
+      <description>The compression force applied to the body part during exposure, measured in Newtons.</description>
+    </entry>
+    <entry group="0018" element="11A3" name="&gt;Compression Pressure" type="3">
+      <description>The area of the body part to which compression has been applied during exposure, measured in mm2.
+Note: Area information is useful in addition to the Compression Pressure (0018,11A3) and Compression Force (0018,11A2) in the event that unusual values are encountered.</description>
+    </entry>
+    <entry group="0018" element="11A5" name="&gt;Compression Contact Area" type="3">
+      <description>The area of the body part to which compression has been applied during exposure, measured in mm2.
+Note: Area information is useful in addition to the Compression Pressure (0018,11A3) and Compression Force (0018,11A2) in the event that unusual values are encountered.</description>
+    </entry>
+    <entry group="0018" element="11A4" name="&gt;Paddle Description" type="1">
+      <description>Description of the compression paddle, if compression was applied to the body part during exposure.</description>
+    </entry>
+    <entry group="0018" element="9538" name="&gt;Per Projection Acquisition Sequence" type="1">
+      <description>Sequence containing detailed acquisition context of each individual projection used in this acquisition context.
+One or more Items shall be included in this Sequence.</description>
+    </entry>
+    <include ref="&gt;&gt;Include 'X Ray 3D General Per Projection Acquisition Macro' Table C.8.21.3.1.2-1"/>
+    <entry group="0018" element="1510" name="&gt;&gt;Positioner Primary Angle" type="1">
+      <description>Signed position in degrees of the X-Ray beam vector in the coronal anatomical plane as if the patient were standing facing the equipment where vertical is zero.</description>
+    </entry>
+    <entry group="0018" element="9559" name="&gt;&gt;Positioner Primary Angle Direction" type="3">
+      <description>The interpretation of the sign of the Positioner Primary Angle (0018,1510).
+Enumerated Values:
+CW = Clockwise. Positioner Primary Angle movement is positive when movement is from vertical to the patient's right (with patient standing, facing equipment).
+CC = Counter clockwise. Positioner Primary Angle is positive when movement is from vertical to the patient's left (with patient standing, facing the equipment).
+See Section C.8.31.2.1.</description>
+    </entry>
+    <entry group="0018" element="1511" name="&gt;&gt;Positioner Secondary Angle" type="1C">
+      <description>Position in degrees of the X-Ray beam vector in the sagittal anatomical plane as if the patient were standing where movement of the X-Ray source from anterior to posterior is positive, and vertical is zero.
+Required if secondary positioner was used during acquisition.</description>
+    </entry>
+    <entry group="0018" element="9328" name="&gt;&gt;Exposure Time in ms" type="1">
+      <description>Duration of X-Ray exposure in milliseconds. See Section C.8.7.2.1.1.</description>
+    </entry>
+    <entry group="0018" element="9332" name="&gt;&gt;Exposure in mAs" type="1">
+      <description>The exposure expressed in milliampereseconds, for example calculated from Exposure Time and X-Ray Tube Current.</description>
+    </entry>
+    <entry group="0018" element="1405" name="&gt;&gt;Relative X-Ray Exposure" type="1">
+      <description>Indication of the applied dose, in manufacturer specific units.
+Note
+1. This value is intended to provide a single location where manufacturer specific information can be found for annotation on a display or film, that has meaning to a knowledgeable observer.
+2. This may be a calculated or measured value. Examples are the detector entrance dose (KB), the CR sensitivity value (S), or the logarithmic median (lgM).
+3. This value is manufacturer-specific. DICOM specifies Standard Attributes in Table 10-23 'Exposure Index Macro', which are recommended.</description>
+    </entry>
+    <entry group="0040" element="0316" name="&gt;&gt;Organ Dose" type="3">
+      <description>Average organ dose value measured in dGy.
+Note: This may be an estimated value.</description>
+    </entry>
+    <entry group="0040" element="8302" name="&gt;&gt;Entrance Dose in mGy" type="3">
+      <description>Average entrance dose value measured in mGy at the surface of the patient during the acquisition of this projection image.
+Note: This may be an estimated value based on assumptions about the patient's body size and habitus.</description>
+    </entry>
+    <entry group="0040" element="8303" name="&gt;&gt;Entrance Dose Derivation" type="3">
+      <description>Describes what type of dose is represented by the values of Entrance Dose in mGy (0040,8302).
+Enumerated Values:
+IAK = Represents air kerma at the entrance surface, no backscatter included, no air kerma to tissue dose conversion applied.
+ESAK = Represents air kerma at the entrance surface, with backscatter included, no air kerma to tissue dose conversion applied.
+ESDBS = Represents absorbed dose in tissue at the entrance surface, with backscatter included.
+ESDNOBS = Represents absorbed dose in tissue at the entrance surface, without backscatter included.
+Only meaningful if Entrance Dose in mGy (0040,8302) is present.</description>
+    </entry>
+    <include ref="&gt;&gt;Include 'Exposure Index Macro' Table 10-23"/>
+    <entry group="0008" element="3010" name="&gt;&gt;Irradiation Event UID" type="3">
+      <description>Unique identification of the irradiation event(s) associated with the acquisition of this image.</description>
+    </entry>
+  </module>
   <macro table="C.8.21.3.1.1-1" name="X Ray 3D General Shared Acquisiton Macro">
     <entry group="0008" element="2112" name="Source Image Sequence" type="1C">
       <description>A Sequence that identifies the set of Images that constitute this acquisition context.
@@ -20308,6 +20688,50 @@ column of the origin vertex.
 Two or more pairs of values follow and are the row and column coordinates of the other vertices of the polygon collimator. Polygon collimators are implicitly closed from the last vertex to the origin vertex and all edges shall be non-intersecting except at the vertices.</description>
     </entry>
   </macro>
+  <macro table="C.8.21.3.1.3-1" name="X-Ray 3D General Positioner Movement Macro Attributes">
+    <entry group="0018" element="9508" name="Primary Positioner Scan Arc" type="1C">
+      <description>Total amount of rotation of the primary positioner in degrees.
+Required if present and consistent in the contributing SOP Instances. Required if Modality (0008,0060) is MG.</description>
+    </entry>
+    <entry group="0018" element="9510" name="Primary Positioner Scan Start Angle" type="1C">
+      <description>Start position of the primary positioner in degrees. See Section C.8.7.5.1.2 or Section C.8.11.7, depending on modality and positioner type.
+Required if present and consistent in the contributing SOP Instances. Required if Modality (0008,0060) is MG.</description>
+    </entry>
+    <entry group="0018" element="9514" name="Primary Positioner Increment" type="1C">
+      <description>Constant increment of the primary positioner angle in degrees. Positive increment indicates an increasing value of the primary positioner angle. See Section C.8.7.5.1.2 or Section C.8.11.7 for the sign conventions depending on modality and positioner type.
+See Section C.8.21.3.1.3.1 for further explanation.
+Required if present and consistent in the contributing SOP Instances.</description>
+    </entry>
+    <entry group="0018" element="9518" name="Primary Positioner Increment Sign" type="3">
+      <description>Direction of the primary positioner rotation.
+Defined Terms:
++1 = indicates a positive primary positioner angle increment
+-1 = indicates a negative primary positioner angle increment
+See Section C.8.7.5.1.2 or Section C.8.11.7 for the sign conventions depending on modality and positioner type.
+See Section C.8.21.3.1.3.1 for further explanation.</description>
+    </entry>
+    <entry group="0018" element="9509" name="Secondary Positioner Scan Arc" type="1C">
+      <description>Total amount of rotation of the secondary positioner in degrees.
+Required if present and consistent in the contributing SOP Instances.</description>
+    </entry>
+    <entry group="0018" element="9511" name="Secondary Positioner Scan Start Angle" type="1C">
+      <description>Start position of the secondary positioner in degrees. See Section C.8.7.5.1.2 or Section C.8.11.7, depending on modality and positioner type.
+Required if present and consistent in the contributing SOP Instances.</description>
+    </entry>
+    <entry group="0018" element="9515" name="Secondary Positioner Increment" type="1C">
+      <description>Constant increment of the secondary positioner angle in degrees. Positive increment indicates an increasing value of the secondary positioner angle. See Section C.8.7.5.1.2 or Section C.8.11.7 for the sign conventions depending on modality and positioner type.
+See Section C.8.21.3.1.3.1 for further explanation.
+Required if present and consistent in the contributing SOP Instances.</description>
+    </entry>
+    <entry group="0018" element="9519" name="Secondary Positioner Increment Sign" type="3">
+      <description>Direction of the secondary positioner rotation.
+Defined Terms:
++1 = indicates a positive secondary positioner angle increment
+-1 = indicates a negative secondary positioner angle increment
+See Section C.8.7.5.1.2 or Section C.8.11.7 for the sign conventions depending on modality and positioner type.
+See Section C.8.21.3.1.3.1 for further explanation.</description>
+    </entry>
+  </macro>
   <module ref="C.8.21.3.2" table="C.8.21.3.2-1" name="X Ray 3D Angiographic Acquisition Module Attributes">
     <entry group="0018" element="9507" name="X-Ray 3D Acquisition Sequence" type="1">
       <description>Each item represents an acquisition context related to one or more reconstructions.
@@ -20518,6 +20942,46 @@ ITERATIVE</description>
     <entry group="0020" element="9518" name="&gt;Acquisition Index" type="1">
       <description>The Item number(s) of the X-Ray 3D Acquisition Sequence (0018,9507) that describes the acquisition context(s) contributing to this reconstruction.</description>
     </entry>
+  </module>
+  <module ref="C.8.21.6" table="C.8.21.6-1" name="Breast View Module Attributes">
+    <entry group="0008" element="0008" name="Image Type" type="1">
+      <description>Image identification characteristics.
+See Section C.8.21.6.1.1 for specialization.</description>
+    </entry>
+    <entry group="0054" element="0220" name="Image Type" type="1">
+      <description>Sequence that describes the view of the patient anatomy in this image.
+Only a single Item shall be included in this Sequence.</description>
+    </entry>
+    <include ref="&gt;Include 'Code Sequence Macro' Table 8.8-1" description="Defined Context ID is CID 4014."/>
+    <entry group="0054" element="0222" name="&gt;View Modifier Code Sequence" type="2">
+      <description>Sequence that provides modifiers for the view of the patient anatomy.
+Zero or more Items shall be included in this Sequence.</description>
+    </entry>
+    <include ref="&gt;&gt;Include 'Code Sequence Macro' Table 8.8-1" description="Defined Context ID is CID 4015."/>
+    <entry group="0028" element="1300" name="Breast Implant Present" type="1C">
+      <description>Whether or not the imaged breast contains a breast implant regardless of the visibility of a breast implant in the Pixel Data.
+Enumerated Values:
+YES
+NO
+Required if Modality (0008,0060) is MG. May be present otherwise.
+Note: The value is expected to be YES for all images acquired on a breast that contains a breast implant, even when a breast implant is displaced during image acquisition.</description>
+    </entry>
+    <entry group="0028" element="1350" name="Partial View" type="3">
+      <description>Indicates whether this image is a partial view, that is a subset of a single view of the breast.
+Enumerated Values:
+YES
+NO
+If this Attribute is absent, then the image may or may not be a partial view.
+Note: This may occur when a breast is larger than the active area of the detector.
+If this Attribute is present, its value shall be NO if there is a View Modifier Code Sequence (0054,0222) Item of value (R-102D6, SRT, "Magnification") or (R-102D7, SRT, "Spot Compression").</description>
+    </entry>
+    <entry group="0028" element="1352" name="Partial View Code Sequence" type="1C">
+      <description>Sequence that describes the portion or section of the breast captured in a partial view image.
+One or two Items shall be included in this Sequence.
+See Section C.8.11.7.1.3.
+Required if Partial View (0028,1350) is present with a value of YES.</description>
+    </entry>
+    <include ref="&gt;Include 'Code Sequence Macro' Table 8.8-1" description="Defined Context ID is CID 4005."/>
   </module>
   <macro table="C.8.21.5.1-1" name="X Ray 3D Frame Type Macro Attributes">
     <entry group="0018" element="9504" name="X-Ray 3D Frame Type Sequence" type="1">
@@ -21990,6 +22454,31 @@ Note:  The timestamp protocol may be specified by a Profile in PS 3.15.
       <description>Unique identifier of the Study containing the referenced Instances.</description>
     </entry>
     <include ref="&gt;Include Series and Instance Reference Macro, Table 10-4."/>
+  </module>
+  <module ref="C.12.3" table="C.12-9" name="Frame Extraction Module Attributes">
+    <entry group="0008" element="1164" name="Frame Extraction Sequence" type="1">
+      <description>Sequence containing details of how this SOP Instance was extracted from a source multi-frame SOP Instance.
+If this instance was created from an instance that contains a Frame Extraction Sequence, then this Sequence shall contain all of the Items from the parent's Frame Extraction Sequence and a new Item that describes this extraction.
+One or more Items shall be included in this Sequence.</description>
+    </entry>
+    <entry group="0008" element="1167" name="&gt;Multi-frame Source SOP Instance UID" type="1">
+      <description>SOP Instance from which the frames of this instance are extracted.</description>
+    </entry>
+    <entry group="0008" element="1161" name="&gt;Simple Frame List" type="1C">
+      <description>A list of Frames that were extracted in the form of a simple list.
+Required if object extraction is based on a Frame Level Retrieve using the Simple Frame List (0008,1161) Attribute.
+See PS3.4 "Instance and Frame Level Retrieve SOP Classes"</description>
+    </entry>
+    <entry group="0008" element="1162" name="&gt;Calculated Frame List" type="1C">
+      <description>A list of Frames that were extracted in the form of one or more triplets
+Required if object extraction is based on a Frame Level Retrieve using the Calculated Frame List (0008,1162) Attribute.
+See PS3.4 "Instance and Frame Level Retrieve SOP Classes"</description>
+    </entry>
+    <entry group="0008" element="1163" name="&gt;Time Range" type="1C">
+      <description>The start and end times of the frames that were extracted.
+Required if object extraction is based on a Frame Level Retrieve using Time Range (0008,1163).
+See PS3.4 "Instance and Frame Level Retrieve SOP Classes"</description>
+    </entry>
   </module>
   <module ref="C.13.1" table="C.13-1" name="Basic Film Session Presentation Module Attributes">
     <entry group="2000" element="0010" name="Number of Copies">
