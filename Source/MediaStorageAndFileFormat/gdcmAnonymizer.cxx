@@ -317,7 +317,11 @@ static Tag BasicApplicationLevelConfidentialityProfileAttributes[] = {
 /*    Verifying Observer Name                                               */ Tag(0x0040,0xA075),
 /*    Verifying Observer Sequence                                           */ Tag(0x0040,0xA073),
 /*    Verifying Organization                                                */ Tag(0x0040,0xA027),
-/*    Visit Comments                                                        */ Tag(0x0038,0x4000)
+/*    Visit Comments                                                        */ Tag(0x0038,0x4000),
+
+/*    These are not part of the recommended standard                         */
+/*    Frame Acquisition DateTime                                             */ Tag(0x0018,0x9074),
+/*    Frame Reference DateTime                                               */ Tag(0x0018,0x9151)
 };
 
 
