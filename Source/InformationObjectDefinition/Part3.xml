@@ -604,8 +604,19 @@ Zero or one Item shall be included in this Sequence.</description>
     </entry>
     <include ref="&gt;&gt;Include 'HL7v2 Hierarchic Designator Macro' Table 10-17"/>
     <entry group="0040" element="0518" name="Container Type Code Sequence" type="2">
-      <description>
-Zero or one Item shall be included in this Sequence.</description>
+      <description>Zero or one Item shall be included in this Sequence.</description>
+    </entry>
+    <include ref="&gt;Include 'Code Sequence Macro' Table 8.8-1" description="Baseline Context ID is CID 8101."/>
+    <entry group="0040" element="051A" name="Container Description" type="3">
+      <description>Description of the container.</description>
+    </entry>
+    <entry group="0040" element="0520" name="Container Component Sequence" type="3">
+      <description>Description of one or more components of the container (e.g., description of the slide and of the coverslip).
+One or more Items are permitted in this Sequence.</description>
+    </entry>
+    <entry group="0050" element="0012" name="&gt;Container Component Type Code Sequence" type="1">
+      <description>Type of container component.
+Only a single Item shall be included in this Sequence.</description>
     </entry>
     <include ref="&gt;&gt;Include 'Code Sequence Macro' Table 8.8-1" description="Baseline Context ID is CID 8102."/>
     <entry group="0008" element="0070" name="&gt;Manufacturer" type="3">
@@ -644,13 +655,21 @@ METAL</description>
 One or more Items shall be included in this Sequence.
 Each specimen imaged in the Pixel Data shall be identified by an Item in this Sequence. Other specimens in/on the container, but not imaged in the Pixel Data, may also be identified by Items in this Sequence.</description>
     </entry>
-    <entry group="0050" element="0551" name="&gt;Specimen Identifier" type="1">
+    <entry group="0040" element="0551" name="&gt;Specimen Identifier" type="1">
       <description>A departmental information system identifier for the Specimen. See Section C.7.6.22.1.1 and Section C.7.6.22.1.2.
 If a single specimen is present in a container, the value of the Specimen Identifier and the value of the Container Identifier are typically the same.</description>
     </entry>
-    <entry group="0050" element="0562" name="&gt;Issuer of the Specimen Identifier Sequence" type="2">
+    <entry group="0040" element="0562" name="&gt;Issuer of the Specimen Identifier Sequence" type="2">
       <description>The name or code for the institution that has assigned the Specimen Identifier.
 Zero or one Item shall be included in this Sequence.</description>
+    </entry>
+    <include ref="&gt;&gt;Include 'HL7v2 Hierarchic Designator Macro' Table 10-17"/>
+    <entry group="0040" element="0554" name="&gt;Specimen UID" type="1">
+      <description>Unique Identifier for Specimen. See Section C.7.6.22.1.2.</description>
+    </entry>
+    <entry group="0040" element="059A" name="&gt;Specimen Type Code Sequence" type="1">
+      <description>Specimen Type.
+Only a single Item is permitted in this Sequence.</description>
     </entry>
     <include ref="&gt;&gt;Include 'Code Sequence Macro' Table 8.8-1" description="Baseline Context ID is CID 8103."/>
     <entry group="0040" element="0600" name="&gt;Specimen Short Description" type="3">
@@ -665,7 +684,7 @@ Zero or more Items shall be included in this Sequence.
 This Sequence includes description of the specimen sampling step from an ancestor specimen, potentially back to the original part collection.
 See Section C.7.6.22.1.3.</description>
     </entry>
-    <entry group="0040" element="0612" name="&gt;&gt;&gt;Specimen Preparation Step Content Item Sequence" type="1">
+    <entry group="0040" element="0612" name="&gt;&gt;Specimen Preparation Step Content Item Sequence" type="1">
       <description>Sequence of Content Items identifying the processes used in one preparation step to prepare the specimen for image acquisition.
 One or more Items shall be included in this Sequence.</description>
     </entry>
@@ -20948,7 +20967,7 @@ ITERATIVE</description>
       <description>Image identification characteristics.
 See Section C.8.21.6.1.1 for specialization.</description>
     </entry>
-    <entry group="0054" element="0220" name="Image Type" type="1">
+    <entry group="0054" element="0220" name="View Code Sequence" type="1">
       <description>Sequence that describes the view of the patient anatomy in this image.
 Only a single Item shall be included in this Sequence.</description>
     </entry>
@@ -22446,7 +22465,19 @@ Note:  The timestamp protocol may be specified by a Profile in PS 3.15.
     <include ref="&gt; Any Attribute from the main dataset that was modified or removed during the de-identification process." type="3"/>
   </macro>
   <module ref="C.12.2" table="C.12-8" name="Common Instance Reference Module Attributes">
-    <include ref="Include Series and Instance Reference Macro, Table 10-4." description="Identifies all Series within the Study of which this Instance is a part, which Series contain Instances that are referenced elsewhere in this Instance."/>
+    <entry group="0008" element="1115" name="Referenced Series Sequence" type="1C">
+      <description>Sequence of Items each of which includes the Attributes of one Series.
+One or more Items shall be included in this Sequence.
+Required if this Instance references Instances in this Study.</description>
+    </entry>
+    <entry group="0020" element="000E" name="&gt;Series Instance UID" type="1">
+      <description>Unique identifier of the Series containing the referenced Instances.</description>
+    </entry>
+    <entry group="0008" element="114A" name="&gt;Referenced Instance Sequence" type="1">
+      <description>Sequence of Items each providing a reference to an Instance that is part of the Series defined by Series Instance UID (0020,000E) in the enclosing Item.
+One or more Items shall be included in this Sequence.</description>
+    </entry>
+    <include ref="&gt;&gt;Include 'SOP Instance Reference Macro' Table 10-11"/>
     <entry group="0008" element="1200" name="Studies Containing Other Referenced Instances Sequence" type="1C">
       <description>Sequence of items each identifying a Study other than the Study of which this Instance is a part, which Studies contain Instances that are referenced elsewhere in this Instance. One or more Items shall be present. Required if this Instance references Instances in other Studies.</description>
     </entry>
