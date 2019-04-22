@@ -15822,7 +15822,7 @@ Only a single Item shall be included in this Sequence.
 Required if a Performed Procedure Step SOP Class was involved in the creation of this Series.</description>
     </entry>
     <include ref="&gt;Include 'SOP Instance Reference Macro' Table 10-11"/>
-    <entry group="0040" element="0275" name="Referenced Performed Procedure Step Sequence" type="3">
+    <entry group="0040" element="0275" name="Request Attributes Sequence" type="3">
       <description>Sequence that contains Attributes from the Imaging Service Request.
 One or more Items are permitted in this Sequence.</description>
     </entry>
@@ -22465,19 +22465,7 @@ Note:  The timestamp protocol may be specified by a Profile in PS 3.15.
     <include ref="&gt; Any Attribute from the main dataset that was modified or removed during the de-identification process." type="3"/>
   </macro>
   <module ref="C.12.2" table="C.12-8" name="Common Instance Reference Module Attributes">
-    <entry group="0008" element="1115" name="Referenced Series Sequence" type="1C">
-      <description>Sequence of Items each of which includes the Attributes of one Series.
-One or more Items shall be included in this Sequence.
-Required if this Instance references Instances in this Study.</description>
-    </entry>
-    <entry group="0020" element="000E" name="&gt;Series Instance UID" type="1">
-      <description>Unique identifier of the Series containing the referenced Instances.</description>
-    </entry>
-    <entry group="0008" element="114A" name="&gt;Referenced Instance Sequence" type="1">
-      <description>Sequence of Items each providing a reference to an Instance that is part of the Series defined by Series Instance UID (0020,000E) in the enclosing Item.
-One or more Items shall be included in this Sequence.</description>
-    </entry>
-    <include ref="&gt;&gt;Include 'SOP Instance Reference Macro' Table 10-11"/>
+    <include ref="Include Series and Instance Reference Macro, Table 10-4." description="Identifies all Series within the Study of which this Instance is a part, which Series contain Instances that are referenced elsewhere in this Instance."/>
     <entry group="0008" element="1200" name="Studies Containing Other Referenced Instances Sequence" type="1C">
       <description>Sequence of items each identifying a Study other than the Study of which this Instance is a part, which Studies contain Instances that are referenced elsewhere in this Instance. One or more Items shall be present. Required if this Instance references Instances in other Studies.</description>
     </entry>
