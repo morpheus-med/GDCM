@@ -667,7 +667,7 @@ Zero or one Item shall be included in this Sequence.</description>
     <entry group="0040" element="0554" name="&gt;Specimen UID" type="1">
       <description>Unique Identifier for Specimen. See Section C.7.6.22.1.2.</description>
     </entry>
-    <entry group="0040" element="059A" name="&gt;Specimen Type Code Sequence" type="1">
+    <entry group="0040" element="059A" name="&gt;Specimen Type Code Sequence" type="3">
       <description>Specimen Type.
 Only a single Item is permitted in this Sequence.</description>
     </entry>
