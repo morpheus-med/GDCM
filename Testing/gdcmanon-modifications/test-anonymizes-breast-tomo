@@ -1,0 +1,53 @@
+#!/usr/bin/env node
+
+const child_process = require('child_process');
+const fs = require('fs');
+
+let passes = 0;
+let failures = 0;
+
+let output = 'anon-tomo.dcm';
+child_process.execSync(`gdcmanon -c dummy-cert.cer -i BreastTomo.dcm -o ${output}`);
+let dump = child_process.execSync(`gdcmdump ${output}`).toString().split('\n');
+fs.unlinkSync(output);
+find_tag('(0008,0020)', '(no value)'); // Study Date
+find_tag('(0008,0021)', '(no value)'); // Series Date
+find_tag('(0010,0010)', '(no value)'); // Patient's Name
+find_tag('(0020,000d)', '[2.25.170008806611856076158271904512046135217]'); //Study Instance UID
+find_tag('(0018,9074)', '(no value)'); // Frame Acquisition DateTime
+find_tag('(0018,9151)', '(no value)'); // Frame Reference DateTime
+handle_results();
+
+function find_tag(tag, expected) {
+    for(let line of dump){
+        verify_tag(tag, expected, line);
+    }
+}
+
+function verify_tag(tag, expected, line) {
+    if(line.includes(tag)) {
+        if(line.includes(expected)) {
+            ++passes;
+            console.log(fmt('PASSED', 'green'));
+        } else {
+            console.log(fmt('FAILED', 'red'));
+            console.log(`expected: ${expected}`);
+            console.log(`actual: ${line}`);
+            ++failures;
+        }
+    }
+}
+
+function handle_results() {
+	console.log(fmt(`${passes} PASSED ${failures} FAILED`, failures > 0 ? 'red' : 'green'));
+	process.exit(failures);
+}
+
+function fmt(message, color) {
+	const colors = {
+		red: '\x1b[31m',
+		green: '\x1b[32m',
+		reset: '\x1b[0m'
+	}
+	return colors[color] + message + colors.reset;
+}

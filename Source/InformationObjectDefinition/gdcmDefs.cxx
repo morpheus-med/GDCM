@@ -237,6 +237,9 @@ const char *Defs::GetIODNameFromMediaStorage(MediaStorage const &ms)
     case MediaStorage::VLMicroscopicImageStorage:
       iodname = "VL Microscopic Image IOD Modules";
       break;
+    case MediaStorage::BreastTomosynthesisImageStorage:
+      iodname = "Breast Tomosynthesis Image IOD Modules";
+      break;
     default:
       iodname = 0;
     }
